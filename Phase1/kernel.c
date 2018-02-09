@@ -10,6 +10,8 @@
 #include "proc.h"          // process names such as IdleProc()
 #include "services.h"      // service code
 
+int i;
+
 // kernel data are all declared here:
 int run_pid;                       // currently running PID; if -1, none selected
 pid_q_t ready_pid_q, avail_pid_q;  // avail PID and those ready to run
@@ -17,9 +19,15 @@ pcb_t pcb[PROC_NUM];               // Process Control Blocks
 char proc_stack[PROC_NUM][PROC_STACK_SIZE]; // process runtime stacks
 
 void InitKernelData(void) {        // init kernel data
-   initialize run_pid (to negative 1)
-   clear two PID queues
-   enqueue all PID numbers into the available PID queue
+   //initialize run_pid (to negative 1)
+   run_pid = -1;
+   //clear two PID queues
+   MyBzero(read_pid_q->q, sizeof(ready_pid_q->q));
+   MyBzero(avail_pid_q->q, sizeof(avail_pid_q->q));
+   //enqueue all PID numbers into the available PID queue
+   for(i=0; i<Q_SIZE; i++) {   
+      EnQ(i, avail_pid_q);
+   }
 }
 
 void InitKernelControl(void) {     // init kernel control
@@ -41,8 +49,8 @@ void ProcScheduler(void) {              // choose run_pid to load/run
 }
 
 int main(void) {  // OS bootstraps
-   initialize kernel data
-   initialize kernel control
+   InitKernelData();
+   InitKernelControl();	
 
    call NewProcService() with address of IdleProc to create it
    call ProcScheduler() to select a run_pid

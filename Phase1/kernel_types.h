@@ -24,6 +24,7 @@ typedef struct {
 } pcb_t;                     
 
 typedef struct {             // generic queue type
+   int index;		     // index of the first element of the array
    int q[Q_SIZE];            // integers are queued in q[] array
    int size;                 // size is also where the tail is for new data
 } pid_q_t;

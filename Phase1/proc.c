@@ -9,7 +9,7 @@
 void IdleProc(void) {
    int i;
 
-   forever loop {
+   while(1) {
       show on target PC: "0 "    // SystemProc has PID 0
       repeat LOOP times: call asm("inb $0x80")  // to cause delay approx 1 second
    }

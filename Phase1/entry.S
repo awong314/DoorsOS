@@ -8,7 +8,8 @@
 
 // loads the trapframe of the selected process in order to run it
 ENTRY(ProcLoader)
-   copy (movl) the 4 bytes above esp into ebx
+   //copy (movl) the 4 bytes above esp into ebx
+   movl %ebx 4(%esp)
    copy ebx to esp (point esp to the process trapframe)
    pop all registers
    return from interrupt

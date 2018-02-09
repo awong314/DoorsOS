@@ -13,6 +13,7 @@
 int i;
 
 // kernel data are all declared here:
+struct i386_gate *IDT_p; //May change but this maybe important ... obviously
 int run_pid;                       // currently running PID; if -1, none selected
 pid_q_t ready_pid_q, avail_pid_q;  // avail PID and those ready to run
 pcb_t pcb[PROC_NUM];               // Process Control Blocks
@@ -22,7 +23,7 @@ void InitKernelData(void) {        // init kernel data
    //initialize run_pid (to negative 1)
    run_pid = -1;
    //clear two PID queues
-   MyBzero(read_pid_q->q, sizeof(ready_pid_q->q));
+   MyBzero(ready_pid_q.q, sizeof(ready_pid_q.q));
    MyBzero(avail_pid_q->q, sizeof(avail_pid_q->q));
    //enqueue all PID numbers into the available PID queue
    for(i=0; i<Q_SIZE; i++) {   
@@ -32,17 +33,22 @@ void InitKernelData(void) {        // init kernel data
 
 void InitKernelControl(void) {     // init kernel control
    (similar to the timer lab)
-   locate where IDT is
-   show its location on target PC
-   call fille_gate: fill out entry TIMER with TimerEntry
-   send PIC a mask value
+   //locate where IDT is 'MAY CHANGE THE VARIABLE'
+   IDT_p = get_idt_base();
+   //show its location on target PC
+   cons_printf("IDT is located at DRAM addr %x (%d).\n",(unsigned int) IDT_p, (unsigned int) IDT_p);
+   //call fille_gate: fill out entry TIMER with TimerEntry
+   fill_gate(&IDT_p[TIMER_EVENT], (int)TimerEvent, get_cs(), ACC_INTR_GATE, 0);
+   //send PIC a mask value
+   
 }
 
 void ProcScheduler(void) {              // choose run_pid to load/run
-   if run_pid is greater than 0, return // no need if PID is a user proc
+   if(run_pid > 0) return; // no need if PID is a user proc
 
-   if the ready_pid_q is empty: let run_pid be zero
-   else: get the 1st one in ready_pid_q to be run_pid
+   if(ready_pid_q->size == 0) run_pid = 0;
+   //get the 1st one in ready_pid_q to be run_pid
+   else ready_pid_q->q[ready_pid_q->index] = run_pid; 
 
    accumulate its totaltime by adding its runtime
    and then reset its runtime to zero
@@ -52,9 +58,12 @@ int main(void) {  // OS bootstraps
    InitKernelData();
    InitKernelControl();	
 
-   call NewProcService() with address of IdleProc to create it
-   call ProcScheduler() to select a run_pid
-   call ProcLoader() with address of the trapframe of the selected run_pid
+   //call NewProcService() with address of IdleProc to create it
+   NewProcService();
+   //call ProcScheduler() to select a run_pid
+   ProcScheduler();
+   //call ProcLoader() with address of the trapframe of the selected run_pid
+   ProcLoader();
 
    return 0; // compiler needs for syntax altho this statement is never exec
 }
@@ -62,9 +71,10 @@ int main(void) {  // OS bootstraps
 void Kernel(trapframe_t *trapframe_p) {   // kernel code runs (100 times/second)
    char key;
 
-   save the trapframe_p to the PCB of run_pid
+   //save the trapframe_p to the PCB of run_pid
+   
 
-   call TimerService() to service the timer interrupt
+   //call TimerService() to service the timer interrupt
 
    if a key is pressed on target PC {
       get the key

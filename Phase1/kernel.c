@@ -77,7 +77,7 @@ void Kernel(trapframe_t *trapframe_p) {   // kernel code runs (100 times/second)
    pcb[run_pid].trapframe_p = trapframe_p;  
 
    //call TimerService() to service the timer interrupt
-   TimeService();
+   TimerService();
 
 
   /* if a key is pressed on target PC {
@@ -88,7 +88,7 @@ void Kernel(trapframe_t *trapframe_p) {   // kernel code runs (100 times/second)
    if(cons_kbhit()) {
        key = cons_getchar();
        if(key == 'n') {
-            NewProcSevice(/*parameters???*/);
+            NewProcService(UserProc);
        }
        if(key == 'b') {
             breakpoint();

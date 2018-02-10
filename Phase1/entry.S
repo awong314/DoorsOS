@@ -34,5 +34,5 @@ ENTRY(TimerEntry)                  // will have efl, cs, eip pushed by hardware
    //clear the direction flag of efl
    cld
    //call the Kernel C code
-   call CNAME(kernel)
+   call CNAME(Kernel)
 

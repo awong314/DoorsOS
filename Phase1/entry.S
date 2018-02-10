@@ -9,9 +9,9 @@
 // loads the trapframe of the selected process in order to run it
 ENTRY(ProcLoader)
    //copy (movl) the 4 bytes above esp into ebx
-   movl %ebx, 4(%esp)
+   movl 4(%esp), %ebx
    //copy ebx to esp (point esp to the process trapframe)
-   mov %esp, %ebx
+   mov %ebx, %esp
    //pop all registers
    popa
    //return from interrupt
@@ -22,7 +22,7 @@ ENTRY(TimerEntry)                  // will have efl, cs, eip pushed by hardware
    //push all registers
    pusha
    //copy esp to ecx
-   mov %ecx, %esp
+   mov %esp, %ecx
    //clear direction flag in efl
    cld
    movw $0x10, %ax                 // set kernel data segment registers

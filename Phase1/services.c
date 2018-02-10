@@ -22,19 +22,25 @@ void NewProcService(func_p_t proc_p) {  // arg: where process code starts
    //use tool MyBzero() to clear PCB and proc stack
    MyBzero((char *)pcb,sizeof(pcb));
    //set its process state to READY
+   pcb[run_pid].state = READY;
    //queue pid to be ready_pid_q unless it's 0 (IdleProc)
+   
 
    //point its trapframe_p into its stack (to create the process trapframe)
+   pcb[run_pid].trapframe_p = pcb[run_pid];
    //fill out efl with "EF_DEFAULT_VALUE | EF_INTR" // to enable intr!
+   pcb[run_pid].efl = EF_DEFAULT_VALUE | EF_INTR; 
    //fill out eip to proc_p
+   pcb[run_pid].eip = proc_p;
    //fill out cs with the return of get_cs() call
+   pcb[run_pid].cs = get_cs();
 }
 
 // count runtime of process and preempt it when reaching time limit
 void TimerService(void) {
 
    //dismiss timer (IRQ0)
-
+   
    //(every .75 second display a dot symbol '.')
 
    //if the run_pid is 0, simply return (IdleProc is exempted)

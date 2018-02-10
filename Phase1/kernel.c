@@ -23,8 +23,8 @@ void InitKernelData(void) {        // init kernel data
    //initialize run_pid (to negative 1)
    run_pid = -1;
    //clear two PID queues
-   MyBzero((char *)ready_pid_q.q, sizeof(ready_pid_q.q));
-   MyBzero((char *)avail_pid_q.q, sizeof(avail_pid_q.q));
+   MyBzero((char *)&ready_pid_q.q, sizeof(ready_pid_q.q));
+   MyBzero((char *)&avail_pid_q.q, sizeof(avail_pid_q.q));
    //enqueue all PID numbers into the available PID queue
    for(i=0; i<Q_SIZE; i++) {   
       EnQ(i,&avail_pid_q);
@@ -37,7 +37,7 @@ void InitKernelControl(void) {     // init kernel control
    IDT_p = get_idt_base();
    //show its location on target PC
    cons_printf("IDT is located at DRAM addr %x (%d).\n",(unsigned int) IDT_p, (unsigned int) IDT_p);
-   //call fille_gate: fill out entry TIMER with TimerEntry
+   //call fill_gate: fill out entry TIMER with TimerEntry
    fill_gate(&IDT_p[TIMER], (int)TimerEntry, get_cs(), ACC_INTR_GATE, 0);
    //send PIC a mask value
    

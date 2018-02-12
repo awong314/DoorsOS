@@ -1,6 +1,5 @@
 #!/bin/tcsh -f
 
-rm *.dli
 make clean
 make
 flash -fullname MyOS.dli

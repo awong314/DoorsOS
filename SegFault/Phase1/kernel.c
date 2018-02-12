@@ -71,6 +71,7 @@ void Kernel(trapframe_t *trapframe_p) {   // kernel code runs (100 times/second)
          NewProcService(UserProc);
       if(key == 'b')              //if it's 'b,' call breakpoint() to go to the GDB prompt
          breakpoint();
+      printf("ASDF\n");
    }
 
    ProcScheduler();               //call ProcScheduler() to select run_pid

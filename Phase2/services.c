@@ -7,7 +7,7 @@
 #include "tools.h"       
 #include "proc.h"
 
-int count = 0;
+int count=0;
 
 // to create process, alloc PID, PCB, and process stack
 // build trapframe, initialize PCB, record PID to ready_pid_q (unless 0)
@@ -27,7 +27,7 @@ void NewProcService(func_p_t proc_p) {  // arg: where process code starts
 
    pcb[pid].trapframe_p = (trapframe_t *)&proc_stack[pid][PROC_STACK_SIZE - sizeof(trapframe_t)]; //point its trapframe_p into its stack (to create the process trapframe)
    pcb[pid].trapframe_p->efl = EF_DEFAULT_VALUE | EF_INTR; //fill out efl with "EF_DEFAULT_VALUE | EF_INTR" // to enable intr!
-   pcb[pid].trapframe_p->eip = (int)proc_p;  //fill out eip to proc_p
+   pcb[pid].trapframe_p->eip = (int)proc_p; //fill out eip to proc_p
    pcb[pid].trapframe_p->cs = get_cs();      //fill out cs with the return of get_cs() call
 }
 

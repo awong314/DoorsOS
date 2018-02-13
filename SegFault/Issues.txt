@@ -1,3 +1,0 @@
-Seg fault at line 56 of kernel.c in ProcLoader Function
-
-to examine data up until seg fault occurs you can set the breakpoint @line 55 with 'b kernel.c:55'

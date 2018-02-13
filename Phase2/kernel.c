@@ -51,8 +51,9 @@ int main(void) {                   // OS bootstraps
    InitKernelControl();            //initialize kernel control
 
    NewProcService(IdleProc);       //call NewProcService() with address of IdleProc to create it
+   cons_printf("%d", run_pid); 
    ProcScheduler();                //call ProcScheduler() to select a run_pid
-   
+   cons_printf("%d", run_pid);
    ProcLoader(pcb[run_pid].trapframe_p);  //call ProcLoader() with address of the trapframe of the selected run_pid
 
    return 0; // compiler needs for syntax altho this statement is never exec
@@ -71,7 +72,6 @@ void Kernel(trapframe_t *trapframe_p) {   // kernel code runs (100 times/second)
          NewProcService(UserProc);
       if(key == 'b')              //if it's 'b,' call breakpoint() to go to the GDB prompt
          breakpoint();
-      printf("ASDF\n");
    }
 
    ProcScheduler();               //call ProcScheduler() to select run_pid

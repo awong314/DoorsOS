@@ -58,7 +58,7 @@ OS_NAME = MyOS
 #       NOTE: Keep the spaces around the equals sign (=) please.
 #	If this changes, run "make depend" to update $OBJECTS.
 #
-SRC = entry.S kernel.c proc.c services.c tools.c 
+SRC = entry.S kernel.c proc.c services.c syscalls.c tools.c 
 
 #
 #  (3) Add any compiler options you want.  They will be passed to gcc386
@@ -277,7 +277,7 @@ help ::
 #  List of object files.
 #### YQYQYQ-MARK-1 ####
 
-OBJECTS =  entry.o kernel.o proc.o services.o tools.o
+OBJECTS =  entry.o kernel.o proc.o services.o syscalls.o tools.o
 
 #### YQYQYQ-STOP-1 ####
 #-------------------------------------
@@ -331,9 +331,78 @@ $(MY_DLI) :	$(OBJECTS) Makefile
 #  Dependencies.
 #### YQYQYQ-MARK-2 ####
 #
-#  Dependencies generated Tue Feb 13 12:09:45 PST 2018 by (spede-mkmf $Revision: 1.2 $/1)
+#  Dependencies generated Mon Feb 19 22:02:23 PST 2018 by (spede-mkmf $Revision: 1.2 $/1)
 #
 
+entry.o: entry.S kernel_constants.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/machine/asmacros.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/sys/cdefs.h
+kernel.o: kernel.c spede.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/flames.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/sys/cdefs.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/sys/types.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/sys/ascii.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/sys/bits.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/stdio.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/stdarg.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/assert.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/machine/io.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/stddef.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/machine/proc_reg.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/machine/seg.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/machine/asmacros.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/machine/rs232.h \
+ kernel_types.h kernel_constants.h entry.h tools.h proc.h services.h
+proc.o: proc.c spede.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/flames.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/sys/cdefs.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/sys/types.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/sys/ascii.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/sys/bits.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/stdio.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/stdarg.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/assert.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/machine/io.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/stddef.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/machine/proc_reg.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/machine/seg.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/machine/asmacros.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/machine/rs232.h \
+ kernel_data.h kernel_types.h kernel_constants.h syscalls.h proc.h
+services.o: services.c spede.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/flames.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/sys/cdefs.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/sys/types.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/sys/ascii.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/sys/bits.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/stdio.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/stdarg.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/assert.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/machine/io.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/stddef.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/machine/proc_reg.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/machine/seg.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/machine/asmacros.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/machine/rs232.h \
+ kernel_types.h kernel_constants.h kernel_data.h services.h tools.h \
+ proc.h
+syscalls.o: syscalls.c kernel_constants.h
+tools.o: tools.c spede.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/flames.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/sys/cdefs.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/sys/types.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/sys/ascii.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/sys/bits.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/stdio.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/stdarg.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/assert.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/machine/io.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/stddef.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/machine/proc_reg.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/machine/seg.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/machine/asmacros.h \
+ /gaia/home/project/spede2/Target-i386/i686/gnu/i386-unknown-gnu/include/spede/machine/rs232.h \
+ kernel_types.h kernel_constants.h kernel_data.h
 
 #### YQYQYQ-STOP-2 ####
 

@@ -27,7 +27,7 @@ void NewProcService(func_p_t proc_p) {  // arg: where process code starts
 
    pcb[pid].trapframe_p = (trapframe_t *)&proc_stack[pid][PROC_STACK_SIZE - sizeof(trapframe_t)]; //point its trapframe_p into its stack (to create the process trapframe)
    pcb[pid].trapframe_p->efl = EF_DEFAULT_VALUE | EF_INTR; //fill out efl with "EF_DEFAULT_VALUE | EF_INTR" // to enable intr!
-   pcb[pid].trapframe_p->eip = (int)proc_p; //fill out eip to proc_p
+   pcb[pid].trapframe_p->eip = (int)proc_p;  //fill out eip to proc_p
    pcb[pid].trapframe_p->cs = get_cs();      //fill out cs with the return of get_cs() call
 }
 
@@ -67,25 +67,20 @@ void SleepService(int centi_sec)
 
 }
 
-void WriteService(int fileno, char *str, int len)
-{
-	static unsigned short *vga_p = (unsigned short *)0xb8000;
-	//char* ch = (char*)0;
-	if(fileno == STDOUT)
-	{
-		while(*str != (char *)0)
-		{
-			*vga_p = *str + 0xf00;
-			vga_p++;
-			str++;
-			if(vga_p >= (unsigned short *)0xb8000 + 25*80)
-			{
-				int j
-				for(j=0; j<25; j++)
-					cons_printf("/n"); // ASK FOR HELP!!!!!!!!!!!	 
-			}
-		}
-	}
+void WriteService(int fileno, char *str, int len) {
+   static unsigned short *vga_p = (unsigned short *)0xb8000;
+   if(fileno == STDOUT) {
+      while(*str != (char *)0) {
+         *vga_p = *str + 0xf00;
+	 vga_p++;
+	 str++;
+	 if(vga_p >= (unsigned short *)0xb8000 + 25*80) {
+            int j;
+	    for(j=0; j<25; j++)
+	    	cons_printf("/n"); 	 
+	 }
+      }
+   }
 }
 
 

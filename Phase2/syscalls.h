@@ -3,8 +3,8 @@
 
 #include "kernel_constants.h"
 
-int sys_getpid(void);
-void sys_write(int, char*, int);
-void sys_sleep(int);
+extern int sys_getpid(void);
+extern void sys_write(int, char*, int);
+extern void sys_sleep(int);
 
 #endif

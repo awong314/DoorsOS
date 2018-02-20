@@ -29,9 +29,9 @@ ENTRY(EnterKernel)                  // will have efl, cs, eip pushed by hardware
    call CNAME(Kernel)              //call the Kernel C code
 
 ENTRY(TimerEntry)
-   push $TIMER
-   jmp ENTRY(EnterKernel)
+   pushl $TIMER
+   jmp EnterKernel
 
 ENTRY(SyscallEntry)
-   push $SYSCALL
-   jmp ENTRY(EnterKernel)
+   pushl $SYSCALL
+   jmp EnterKernel

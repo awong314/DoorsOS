@@ -55,9 +55,9 @@ int main(void) {                   // OS bootstraps
    InitKernelControl();            //initialize kernel control
 
    NewProcService(IdleProc);       //call NewProcService() with address of IdleProc to create it
-   cons_printf("%d", run_pid); 
+   //cons_printf("%d", run_pid); 
    ProcScheduler();                //call ProcScheduler() to select a run_pid
-   cons_printf("%d", run_pid);
+   //cons_printf("%d", run_pid);
    ProcLoader(pcb[run_pid].trapframe_p);  //call ProcLoader() with address of the trapframe of the selected run_pid
 
    return 0; // compiler needs for syntax altho this statement is never exec
@@ -67,8 +67,7 @@ void Kernel(trapframe_t *trapframe_p) {   // kernel code runs (100 times/second)
    char key;
 
    pcb[run_pid].trapframe_p = trapframe_p;//save the trapframe_p to the PCB of run_pid
-   switch(trapframe_p->intr_num)
-   {
+   switch(trapframe_p->intr_num) {
 	case TIMER:
 		TimerService();
 		break;
@@ -76,10 +75,10 @@ void Kernel(trapframe_t *trapframe_p) {   // kernel code runs (100 times/second)
 		SyscallEntry();
 		break;
 	default:
-		while(1){cons_printf("ITS NOT WORKING SILLY!\n");
+		cons_printf("Invalid intr");
 		break;
    }
-   TimerService();                //call TimerService() to service the timer interrupt
+                  //call TimerService() to service the timer interrupt IT WAS HERE BUT ANDREW SAID NOOOOOOOOOOOOO
 
    if(cons_kbhit()) {             //if a key is pressed on target PC {
       key = cons_getchar();       //get the key
@@ -92,4 +91,3 @@ void Kernel(trapframe_t *trapframe_p) {   // kernel code runs (100 times/second)
    ProcScheduler();               //call ProcScheduler() to select run_pid
    ProcLoader(pcb[run_pid].trapframe_p);  //call ProcLoader() given the trapframe_p of the run_pid to load/run it
 }
-

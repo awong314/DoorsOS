@@ -4,8 +4,8 @@
 
 #include "spede.h"       // cons_xxx below needs
 #include "kernel_data.h" // run_pid needed below
-#include "proc.h"        // prototypes of processes
 #include "syscalls.h"    // prototypes of the system calls
+#include "proc.h"        // prototypes of processes
 
 void IdleProc(void) {
    int i;

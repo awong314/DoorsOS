@@ -11,4 +11,12 @@
 #define Q_SIZE 20            // queuing capacity
 #define PROC_STACK_SIZE 4096 // process runtime stack in bytes
 
+//Phase2 constants
+#define SYSCALL 128	     // Entry #128 in the IDT carries the address of Syscallentry which leads to the execution of the kernel
+#define STDOUT 1	     //
+#define SYS_WRITE 4	     //
+#define SYS_GETPID 20        //
+#define SYS_SLEEP 162	     //
+
+
 #endif

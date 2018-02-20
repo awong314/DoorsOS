@@ -7,20 +7,28 @@
 
 typedef void (*func_p_t)(); // void-return function pointer type
 
-typedef enum {AVAIL, READY, RUN} state_t;
+typedef enum {AVAIL, READY, RUN, SLEEP} state_t;   //SLEEP state added in Phase2
 
 typedef struct {
-   unsigned int regs[8];
-   unsigned int eip;
-   unsigned int cs;
-   unsigned int efl;
+   unsigned int regs[4];     // changed from regs[8] from Phase1
+   unsigned int eax,
+		ebx,
+		ecx,
+		edx,
+		eip,
+		efl,
+		cs,
+		intr_num;
 } trapframe_t;
 
 typedef struct {
+   //Phase1
    state_t state;            // state of process
    int runtime;              // runtime of this run
    int totaltime;            // total runtime
    trapframe_t *trapframe_p; // points to saved trapframe
+   //Phase2
+   int wake_time;	     // wake time of process given in centi-seconds = current OS time + sleep time requested
 } pcb_t;                     
 
 typedef struct {             // generic queue type

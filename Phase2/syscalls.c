@@ -6,9 +6,9 @@
 int sys_getpid(void) {
    int pid;
 
-   asm("movl %1, %%eax;	      // service #20 (SYS_GETPID)
-      int $128;	  	      // interrupt CPU with IDT entry 128
-      movl %%ebx, %0"	      // after, copy ebx to variable 'pid'
+   asm("movl %1, %%eax;"	      // service #20 (SYS_GETPID)
+      "int $128;"	  	      // interrupt CPU with IDT entry 128
+      "movl %%ebx, %0"	      // after, copy ebx to variable 'pid'
       : "=g" (pid)	      // output syntax
       : "g" (SYS_GETPID)      // input syntax
       : "eax", "ebx" 	      // used registers
@@ -18,11 +18,11 @@ int sys_getpid(void) {
 }
 
 void sys_write(int fileno, char *str, int len) {
-   asm("movl %1, %%eax;	      // service #4 (SYS_WRITE) via eax
-      movl %1, %%ebx;	      // send in fileno via ebx (e.g., STDOUT)
-      movl %1, %%ecx;         // send in str addr via ecx
-      movl %1, %%edx;         // send in str length via edx
-      int $128;" 	      // initiate service call, intr 128 (IDT entry 128)
+   asm("movl %1, %%eax;"	      // service #4 (SYS_WRITE) via eax
+      "movl %1, %%ebx;"	      // send in fileno via ebx (e.g., STDOUT)
+      "movl %1, %%ecx;"         // send in str addr via ecx
+      "movl %1, %%edx;"         // send in str length via edx
+      "int $128;" 	      // initiate service call, intr 128 (IDT entry 128)
       : 
       : "g" (SYS_WRITE), "g" (STDOUT), "g" (str), "g" (len)
       : "eax", "ebx", "ecx", "edx"
@@ -30,8 +30,8 @@ void sys_write(int fileno, char *str, int len) {
 } 
 
 void sys_sleep(int centi_sec) {	// 1 centi-second is 1/100 of a second
-   asm("movl %1, %%eax;       // service #162 (SYS_SLEEP)
-      movl %1, %%ebx;"	      // send in centi-seconds via ebx
+   asm("movl %1, %%eax;"       // service #162 (SYS_SLEEP)
+      "movl %1, %%ebx;"	      // send in centi-seconds via ebx
       :
       : "g" (SYS_SLEEP), "g" (centi_sec)
       : "eax", "ebx"

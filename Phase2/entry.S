@@ -8,13 +8,14 @@
 
 // loads the trapframe of the selected process in order to run it
 ENTRY(ProcLoader)
-   movl 4(%esp), %ebx              //copy (movl) the 4 bytes above esp into ebx
-   movl %ebx, %esp                 //copy ebx to esp (point esp to the process trapframe)
+   movl 4(%esp), %ebx    //copy (movl) the 4 bytes above esp into ebx
+   movl %ebx, %esp    //copy ebx to esp (point esp to the process trapframe)
    popa                            //pop all registers
+   addl $4, %esp
    iret                            //return from interrupt
 
 // build proc frame, and go into kernel
-ENTRY(TimerEntry)                  // will have efl, cs, eip pushed by hardware
+ENTRY(EnterKernel)                  // will have efl, cs, eip pushed by hardware
    pusha                           //push all registers
    movl %esp, %ecx                 //copy esp to ecx
    cld                             //clear direction flag in efl
@@ -24,5 +25,13 @@ ENTRY(TimerEntry)                  // will have efl, cs, eip pushed by hardware
    leal kernel_stack + 8192, %esp  // point esp to the kernel stack
    push %ecx                       //push ecx (onto the kernel stack)
    cld                             //clear the direction flag of efl
+   push $TIMER
    call CNAME(Kernel)              //call the Kernel C code
 
+ENTRY(TimerEntry)
+   push $TIMER
+   jmp ENTRY(EnterKernel)
+
+ENTRY(SyscallEntry)
+   push $SYSCALL
+   jmp ENTRY(EnterKernel)

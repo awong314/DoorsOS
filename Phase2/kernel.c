@@ -17,9 +17,12 @@ int run_pid;                       // currently running PID; if -1, none selecte
 pid_q_t ready_pid_q, avail_pid_q;  // avail PID and those ready to run
 pcb_t pcb[PROC_NUM];               // Process Control Blocks
 char proc_stack[PROC_NUM][PROC_STACK_SIZE]; // process runtime stacks
+int current_time;
+
 
 void InitKernelData(void) {        // init kernel data
    int i;
+   current_time = 0;
    run_pid = -1;                   //initialize run_pid (to negative 1)
    MyBzero((char *)&ready_pid_q, sizeof(pid_q_t));   //clear two PID queues
    MyBzero((char *)&avail_pid_q, sizeof(pid_q_t));   
@@ -63,7 +66,13 @@ void Kernel(trapframe_t *trapframe_p) {   // kernel code runs (100 times/second)
    char key;
 
    pcb[run_pid].trapframe_p = trapframe_p;//save the trapframe_p to the PCB of run_pid
-
+   switch(trapframe_p->intr_num)
+   {
+	case TIMER:
+		TimerService();
+	case SYSCALL:
+		
+   }
    TimerService();                //call TimerService() to service the timer interrupt
 
    if(cons_kbhit()) {             //if a key is pressed on target PC {

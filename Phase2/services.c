@@ -33,7 +33,6 @@ void NewProcService(func_p_t proc_p) {  // arg: where process code starts
 
 // count runtime of process and preempt it when reaching time limit
 void TimerService(void) {
-
    outportb(0x20, 0x60); //dismiss timer (IRQ0)
 
    if(count != 75) count++; //(every .75 second display a dot symbol '.')
@@ -50,5 +49,6 @@ void TimerService(void) {
       EnQ(run_pid, &ready_pid_q);           //queue it to ready_pid_q
       run_pid = -1;                         //reset run_pid (to -1)
    }
+   current_time++;
 }
 

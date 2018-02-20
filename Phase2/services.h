@@ -7,5 +7,9 @@
 
 void NewProcService(func_p_t);
 void TimerService(void);
+void SyscallService(trapframe_t*);
+void GetpidService(int*);
+void SleepService(int);
+void WriteService(int, char*, int);
 
 #endif

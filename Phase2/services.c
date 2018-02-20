@@ -52,3 +52,47 @@ void TimerService(void) {
    current_time++;
 }
 
+void SyscallService(trapframe_t *p)
+{
+
+}
+
+void GetpidService(int *p)
+{
+
+}
+
+void SleepService(int centi_sec)
+{
+
+}
+
+void WriteService(int fileno, char *str, int len)
+{
+	static unsigned short *vga_p = (unsigned short *)0xb8000;
+	//char* ch = (char*)0;
+	if(fileno == STDOUT)
+	{
+		while(*str != (char *)0)
+		{
+			*vga_p = *str + 0xf00;
+			vga_p++;
+			str++;
+			if(vga_p >= (unsigned short *)0xb8000 + 25*80)
+			{
+				int j
+				for(j=0; j<25; j++)
+					cons_printf("/n"); // ASK FOR HELP!!!!!!!!!!!	 
+			}
+		}
+	}
+}
+
+
+
+
+
+
+
+
+

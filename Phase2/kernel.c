@@ -34,7 +34,8 @@ void InitKernelData(void) {        // init kernel data
 void InitKernelControl(void) {     // init kernel control
    IDT_p = get_idt_base();         //locate where IDT is
    cons_printf("IDT is located at DRAM addr %x (%d).\n", (unsigned int) IDT_p, (unsigned int) IDT_p);   //show its location on target PC
-   fill_gate(&IDT_p[TIMER], (int)TimerEntry, get_cs(), ACC_INTR_GATE, 0);   //call fill_gate: fill out entry TIMER with TimerEntry
+   fill_gate(&IDT_p[TIMER], (int)TimerEntry, get_cs(), ACC_INTR_GATE, 0);
+   fill_gate(&IDT_p[SYSCALL], (int)SyscallEntry, get_cs(), ACC_INTR_GATE,0);   //call fill_gate: fill out entry TIMER with TimerEntry
    outportb(0x21, ~1);             //send PIC a mask value
 }
 
@@ -70,8 +71,13 @@ void Kernel(trapframe_t *trapframe_p) {   // kernel code runs (100 times/second)
    {
 	case TIMER:
 		TimerService();
+		break;
 	case SYSCALL:
-		
+		SyscallEntry();
+		break;
+	default:
+		while(1){cons_printf("ITS NOT WORKING SILLY!\n");
+		break;
    }
    TimerService();                //call TimerService() to service the timer interrupt
 

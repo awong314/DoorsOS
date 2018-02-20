@@ -1,7 +1,7 @@
 // kernel.c, 159
 // OS bootstrap and kernel code for OS phase 1
 // OS Name: DoorsOS
-// Team Name: A.W.W.W. (Members: Andrew Wong, Wesley Webb) 
+// Team Name: AWWW (Members: Andrew Wong, Wesley Webb) 
 
 #include "spede.h"         // given SPEDE stuff
 #include "kernel_types.h"  // kernle data types

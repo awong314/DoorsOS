@@ -71,7 +71,7 @@ void Kernel(trapframe_t *trapframe_p) {   // kernel code runs (100 times/second)
 		TimerService();
 		break;
 	case SYSCALL:
-		SyscallEntry();
+		SyscallService(trapframe_p);
 		break;
 	default:
 		cons_printf("Invalid intr");

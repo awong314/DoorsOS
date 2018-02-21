@@ -11,14 +11,14 @@ typedef enum {AVAIL, READY, RUN, SLEEP} state_t;   //SLEEP state added in Phase2
 
 typedef struct {
    unsigned int regs[4];     // changed from regs[8] from Phase1
-   unsigned int eax,
-		ebx,
-		ecx,
+   unsigned int ebx,
 		edx,
+		ecx,
+		eax,
+		intr_num,
 		eip,
-		efl,
 		cs,
-		intr_num;
+		efl;
 } trapframe_t;
 
 typedef struct {

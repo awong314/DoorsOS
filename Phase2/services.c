@@ -36,26 +36,18 @@ void NewProcService(func_p_t proc_p) {  // arg: where process code starts
 void TimerService(void) {  
    int k = 0;
    current_time++;
-   printf("\nTimer Service");
    for(k=0; k<PROC_NUM; k++) {
       if(pcb[k].state == SLEEP && pcb[k].wake_time == current_time) {
          EnQ(k,&ready_pid_q);
-	 //EnQ(run_pid,&ready_pid_q);	
 	 pcb[k].state = READY;
       }
    }
    
    outportb(0x20, 0x60); //dismiss timer (IRQ0)
 
-   if(count != 75) count++; //(every .75 second display a dot symbol '.')
-   if(count == 75) {
-      cons_printf(". ");
-      count = 0;
-   }
-   
    if(run_pid == 0) return; //if the run_pid is 0, simply return (IdleProc is exempted)
 
-   pcb[run_pid].runtime ++; //upcount the runtime of the running process
+   pcb[run_pid].runtime++; //upcount the runtime of the running process
    if(pcb[run_pid].runtime >= TIME_LIMIT) { //if it reaches the time limit
       pcb[run_pid].state = READY;           //change its state to READY
       EnQ(run_pid, &ready_pid_q);           //queue it to ready_pid_q
@@ -63,11 +55,9 @@ void TimerService(void) {
    }
 }
 
-void SyscallService(trapframe_t *p)
-{
+void SyscallService(trapframe_t *p) {
 	printf("\nSYSCALL");
-	switch(p->eax)
-	{
+	switch(p->eax) {
 		case SYS_GETPID:
 			GetpidService(&p->ebx);
 			break;
@@ -98,18 +88,21 @@ void SleepService(int centi_sec) {
 
 void WriteService(int fileno, char *str, int len) {
    static unsigned short *vga_p = (unsigned short *)0xb8000;
-   printf("\nWRITE SERVICE");
+   int w = 0;
+   printf("\nWRITE SERVICE %s",str);
    if(fileno == STDOUT) {
-      while(str != (char *)0) {
-         *vga_p = *str + 0x0f00;
+      //while(*str != (char *)0) {
+	for(w = 0; w<len; w++) {
+         *vga_p = str[w] + 0xf00;
 	 vga_p++;
-	 str++;
+	 //str++;
 	 if(vga_p >= (unsigned short *)0xb8000 + 25*80) {
             int j;
 	    for(j=0; j<25; j++)
-	    	cons_printf("/n"); 	 
+	    	cons_printf("\n"); 	 
 	 }
       }
    }
+   printf("OUT OF THE INFINITE LOOP");
 }
 

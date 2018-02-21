@@ -18,14 +18,12 @@ ENTRY(SyscallEntry)
 EnterKernel:                  // will have efl, cs, eip pushed by hardware
    pusha                           //push all registers
    movl %esp, %ecx                 //copy esp to ecx
-   cld                             //clear direction flag in efl
    movw $0x10, %ax                 // set kernel data segment registers
    mov %ax, %ds                    // set kernel data segment registers
    mov %ax, %es                    // set kernel data segment registers
    leal kernel_stack + 8192, %esp  // point esp to the kernel stack
    push %ecx                       //push ecx (onto the kernel stack)
    cld                             //clear the direction flag of efl
-   push $TIMER
    call CNAME(Kernel)              //call the Kernel C code
 
 // loads the trapframe of the selected process in order to run it

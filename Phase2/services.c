@@ -13,7 +13,7 @@ int count=0;
 // build trapframe, initialize PCB, record PID to ready_pid_q (unless 0)
 void NewProcService(func_p_t proc_p) {  // arg: where process code starts
    int pid;
-
+	printf("\nNEW PROC");
    if(avail_pid_q.size == 0) {          //if the size of avail_pid_q is 0 may occur as too many proc got created
       cons_printf("KERNEL PANIC: Plz No more clik clak"); //show on target PC: "Kernel Panic: no more process!\n"
       return;                   // alternative: breakpoint()
@@ -29,10 +29,22 @@ void NewProcService(func_p_t proc_p) {  // arg: where process code starts
    pcb[pid].trapframe_p->efl = EF_DEFAULT_VALUE | EF_INTR; //fill out efl with "EF_DEFAULT_VALUE | EF_INTR" // to enable intr!
    pcb[pid].trapframe_p->eip = (int)proc_p;  //fill out eip to proc_p
    pcb[pid].trapframe_p->cs = get_cs();      //fill out cs with the return of get_cs() call
+   printf("\n END OF NEW PROC");
 }
 
 // count runtime of process and preempt it when reaching time limit
-void TimerService(void) {
+void TimerService(void) {  
+   int k = 0;
+   current_time++;
+   printf("\nTimer Service");
+   for(k=0; k<PROC_NUM; k++) {
+      if(pcb[k].state == SLEEP && pcb[k].wake_time == current_time) {
+         EnQ(k,&ready_pid_q);
+	 //EnQ(run_pid,&ready_pid_q);	
+	 pcb[k].state = READY;
+      }
+   }
+   
    outportb(0x20, 0x60); //dismiss timer (IRQ0)
 
    if(count != 75) count++; //(every .75 second display a dot symbol '.')
@@ -49,29 +61,47 @@ void TimerService(void) {
       EnQ(run_pid, &ready_pid_q);           //queue it to ready_pid_q
       run_pid = -1;                         //reset run_pid (to -1)
    }
-   current_time++;
 }
 
 void SyscallService(trapframe_t *p)
 {
-
+	printf("\nSYSCALL");
+	switch(p->eax)
+	{
+		case SYS_GETPID:
+			GetpidService(&p->ebx);
+			break;
+		case SYS_SLEEP: 
+			SleepService((int)p->ebx);
+			break;
+		case SYS_WRITE:
+			WriteService((int)p->ebx,(char *)p->ecx,(int)p->edx);
+			break;
+		default:
+			cons_printf("Error due to p->eax being %d",p->eax);
+			break;			
+	}
 }
 
 void GetpidService(int *p)
 {
-
+	*p = run_pid;
+	printf("\nGET PID");
 }
 
-void SleepService(int centi_sec)
-{
-
+void SleepService(int centi_sec) {
+   printf("\nSLEEP");
+   pcb[run_pid].wake_time = current_time + centi_sec;
+   pcb[run_pid].state = SLEEP;
+   run_pid = -1;	
 }
 
 void WriteService(int fileno, char *str, int len) {
    static unsigned short *vga_p = (unsigned short *)0xb8000;
+   printf("\nWRITE SERVICE");
    if(fileno == STDOUT) {
-      while(*str != (char *)0) {
-         *vga_p = *str + 0xf00;
+      while(str != (char *)0) {
+         *vga_p = *str + 0x0f00;
 	 vga_p++;
 	 str++;
 	 if(vga_p >= (unsigned short *)0xb8000 + 25*80) {
@@ -82,12 +112,4 @@ void WriteService(int fileno, char *str, int len) {
       }
    }
 }
-
-
-
-
-
-
-
-
 

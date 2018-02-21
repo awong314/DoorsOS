@@ -22,7 +22,6 @@ int current_time;
 
 void InitKernelData(void) {        // init kernel data
    int i;
-   current_time = 0;
    run_pid = -1;                   //initialize run_pid (to negative 1)
    MyBzero((char *)&ready_pid_q, sizeof(pid_q_t));   //clear two PID queues
    MyBzero((char *)&avail_pid_q, sizeof(pid_q_t));   
@@ -51,21 +50,21 @@ void ProcScheduler(void) {         // choose run_pid to load/run
 }
 
 int main(void) {                   // OS bootstraps
+   current_time = 0;
    InitKernelData();               //initialize kernel data
    InitKernelControl();            //initialize kernel control
 
    NewProcService(IdleProc);       //call NewProcService() with address of IdleProc to create it
-   //cons_printf("%d", run_pid); 
+   cons_printf("%d", run_pid); 
    ProcScheduler();                //call ProcScheduler() to select a run_pid
-   //cons_printf("%d", run_pid);
+   cons_printf("%d", run_pid);
    ProcLoader(pcb[run_pid].trapframe_p);  //call ProcLoader() with address of the trapframe of the selected run_pid
-
+   cons_printf("IT WORKS");
    return 0; // compiler needs for syntax altho this statement is never exec
 }
 
 void Kernel(trapframe_t *trapframe_p) {   // kernel code runs (100 times/second)
    char key;
-
    pcb[run_pid].trapframe_p = trapframe_p;//save the trapframe_p to the PCB of run_pid
    switch(trapframe_p->intr_num) {
 	case TIMER:
@@ -78,8 +77,6 @@ void Kernel(trapframe_t *trapframe_p) {   // kernel code runs (100 times/second)
 		cons_printf("Invalid intr");
 		break;
    }
-                  //call TimerService() to service the timer interrupt IT WAS HERE BUT ANDREW SAID NOOOOOOOOOOOOO
-
    if(cons_kbhit()) {             //if a key is pressed on target PC {
       key = cons_getchar();       //get the key
       if(key == 'n')              //if it's 'n,' call NewProcService() to create a UserProc

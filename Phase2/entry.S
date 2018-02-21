@@ -6,16 +6,16 @@
 .comm kernel_stack, 8192, 1 // declare kernel stack space 8192 x 1 byte
 .text
 
-// loads the trapframe of the selected process in order to run it
-ENTRY(ProcLoader)
-   movl 4(%esp), %ebx    //copy (movl) the 4 bytes above esp into ebx
-   movl %ebx, %esp    //copy ebx to esp (point esp to the process trapframe)
-   popa                            //pop all registers
-   addl $4, %esp
-   iret                            //return from interrupt
+ENTRY(TimerEntry)
+   pushl $TIMER
+   jmp EnterKernel
+
+ENTRY(SyscallEntry)
+   pushl $SYSCALL
+   jmp EnterKernel
 
 // build proc frame, and go into kernel
-ENTRY(EnterKernel)                  // will have efl, cs, eip pushed by hardware
+EnterKernel:                  // will have efl, cs, eip pushed by hardware
    pusha                           //push all registers
    movl %esp, %ecx                 //copy esp to ecx
    cld                             //clear direction flag in efl
@@ -28,10 +28,10 @@ ENTRY(EnterKernel)                  // will have efl, cs, eip pushed by hardware
    push $TIMER
    call CNAME(Kernel)              //call the Kernel C code
 
-ENTRY(TimerEntry)
-   pushl $TIMER
-   jmp EnterKernel
-
-ENTRY(SyscallEntry)
-   pushl $SYSCALL
-   jmp EnterKernel
+// loads the trapframe of the selected process in order to run it
+ENTRY(ProcLoader)
+   movl 4(%esp), %eax    //copy (movl) the 4 bytes above esp into ebx
+   movl %eax, %esp       //copy ebx to esp (point esp to the process trapframe)
+   popa                  //pop all registers
+   add $4, %esp	 //skip intr num 4 bytes
+   iret                            //return from interrupt

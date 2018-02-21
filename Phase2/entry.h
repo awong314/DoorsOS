@@ -12,7 +12,6 @@ __BEGIN_DECLS
 
 void TimerEntry(void);            // coded in entry.S, assembler won't like this syntax
 void ProcLoader(trapframe_t *);   // coded in entry.S
-void EnterKernel(void);
 void SyscallEntry(void);
 
 

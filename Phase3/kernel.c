@@ -18,7 +18,7 @@ pid_q_t ready_pid_q, avail_pid_q;  // avail PID and those ready to run
 pcb_t pcb[PROC_NUM];               // Process Control Blocks
 char proc_stack[PROC_NUM][PROC_STACK_SIZE]; // process runtime stacks
 int current_time;
-
+semaphore_t video_sem;
 
 void InitKernelData(void) {        // init kernel data
    int i;
@@ -51,12 +51,16 @@ void ProcScheduler(void) {         // choose run_pid to load/run
 
 int main(void) {                   // OS bootstraps
    current_time = 0;
+   video_sem.val = 1;
    InitKernelData();               //initialize kernel data
    InitKernelControl();            //initialize kernel control
 
-   NewProcService(IdleProc);       //call NewProcService() with address of IdleProc to create it 
+   NewProcService(IdleProc);       //call NewProcService() with address of IdleProc to create it
+   cons_printf("%d", run_pid); 
    ProcScheduler();                //call ProcScheduler() to select a run_pid
+   cons_printf("%d", run_pid);
    ProcLoader(pcb[run_pid].trapframe_p);  //call ProcLoader() with address of the trapframe of the selected run_pid
+   cons_printf("IT WORKS");
    return 0; // compiler needs for syntax altho this statement is never exec
 }
 

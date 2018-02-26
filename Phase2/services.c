@@ -89,7 +89,7 @@ void WriteService(int fileno, char *str, int len) {
 
    if(fileno == STDOUT) {
       //while(*str != (char *)0) {
-	for(w = 0; w<len; w++) {
+      for(w = 0; w<len; w++) {
          *vga_p = str[w] + 0xf00;
 	 vga_p++;
 	 //str++;

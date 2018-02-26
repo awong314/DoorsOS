@@ -92,6 +92,15 @@ void SplashScreen () {
    // mask value 0xf00
    //*vga_p = str[w] + ;
    //	vga_p++;
+   cons_printf("  _             _,-----------._        ___ ");
+   cons_printf(" (_,.-      _,-'_,-----------._`-._    _)_)"); 
+   cons_printf("    |     ,'_,-'  ___________  `-._`.      "); 
+   cons_printf("   `'   ,','  _,-'___________`-._  `.`.    "); 
+   cons_printf("       ','  ,'_,-'     .     `-._`.  `.`.  "); 
+   cons_printf("     /,'  ,','        >|<        `.`.  `.\ "); 
+   cons_printf("    //  ,','      ><  ,^.  ><      `.`.  \ \ "); 
+   cons_printf("   //  /,'      ><   / | \   ><      `.\  \ \ "); 
+   cons_printf("  //  //      ><    \/\^/\/    ><      \ \  \ \ "); 
 
 
 

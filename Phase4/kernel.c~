@@ -18,8 +18,8 @@ pid_q_t ready_pid_q, avail_pid_q;  				// avail PID and those ready to run
 pcb_t pcb[PROC_NUM];               				// Process Control Blocks
 char proc_stack[PROC_NUM][PROC_STACK_SIZE];  // process runtime stacks
 int current_time;
-semaphore_t video_sem;								// Phase4
-term_t term[2];										// Phase4
+semaphore_t video_sem;
+term_t term[2];
 
 void InitKernelData(void) {        
    int i;

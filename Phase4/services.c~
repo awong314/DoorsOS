@@ -90,7 +90,7 @@ void SleepService(int centi_sec) {
 void WriteService(int fileno, char *str, int len) {
    static unsigned short *vga_p = (unsigned short *)0xb8000;
    int w = 0;
-
+/*
    if(fileno == STDOUT) {
 		for(w = 0; w<len; w++) {
       	*vga_p = str[w] + 0xf00;
@@ -102,8 +102,10 @@ void WriteService(int fileno, char *str, int len) {
 	    		vga_p = (unsigned short *)0xb8000;	 
 	 		}
       }
-   } else if (fileno == TERM1) {
-
+   } else 
+*/
+   if (fileno == TERM1) {
+		
 	} else if (fileno == TERM2) {
 
 	}
@@ -143,8 +145,25 @@ void SempostService(int sem_num) {
    printf("video_sem: %d",video_sem.val);
 }
 
+void TermService(int which) {
+	int i, pid;
 
+	if 1st character of dsp buffer is null, return; // nothing to dsp
 
+	outportb(term[which].data, term[which].dsp[0]); // disp 1st char
 
+	conduct a loop, one by one {:
+	move each character in dsp buffer forward by 1 character
+	if encounter moving a NULL character, break loop
+	
+}
 
+	if 1st char of dsp buffer is null and the wait queue has PID {
+		// str ends & there's a waiter
+		// release the 1st waiter in the wait queue:
+		1. dequeue it from the wait queue
+		2. update its state
+		3. enqueue it to ready PID queue
+	}
+}
 

@@ -90,7 +90,7 @@ void SleepService(int centi_sec) {
 void WriteService(int fileno, char *str, int len) {
    static unsigned short *vga_p = (unsigned short *)0xb8000;
    int w = 0;
-
+/* Phase 2/3
    if(fileno == STDOUT) {
 		for(w = 0; w<len; w++) {
       	*vga_p = str[w] + 0xf00;
@@ -102,7 +102,9 @@ void WriteService(int fileno, char *str, int len) {
 	    		vga_p = (unsigned short *)0xb8000;	 
 	 		}
       }
-   } else if (fileno == TERM1) {
+   } else 
+*/
+   if (fileno == TERM1) {
 		
 	} else if (fileno == TERM2) {
 

@@ -89,11 +89,12 @@ void SleepService(int centi_sec) {
 
 void WriteService(int fileno, char *str, int len) {
    static unsigned short *vga_p = (unsigned short *)0xb8000;
-   int w = 0;
+   int i=0, which = fileno % 2;
 
+   // Phase 2 & 3 writing to STDOUT
    if(fileno == STDOUT) {
-		for(w = 0; w<len; w++) {
-      	*vga_p = str[w] + 0xf00;
+		for(i=0; i<len; i++) {
+      	*vga_p = str[i] + 0xf00;
 	 		vga_p++;
 	 		if(vga_p >= (unsigned short *)0xb8000 + 25*80) {
          	int j;
@@ -102,10 +103,22 @@ void WriteService(int fileno, char *str, int len) {
 	    		vga_p = (unsigned short *)0xb8000;	 
 	 		}
       }
-   } else if (fileno == TERM1) {
-		
+   } 
+   // Phase 4
+   else if (fileno == TERM1) {
+      for(i=0; i<len; i++) {
+         term[which].dsp[i] = *str;
+         str++;
+      }
+		pcb[run_pid].state = WAIT; 
+		EnQ(run_pid, &term[which].dsp_wait_q);
 	} else if (fileno == TERM2) {
-
+		for(i=0; i<len; i++) {
+         term[which].dsp[i] = *str;
+         str++;
+      }
+		pcb[run_pid].state = WAIT;
+		EnQ(run_pid, &term[which].dsp_wait_q);
 	}
 }
 
@@ -116,9 +129,9 @@ void SemwaitService(int sem_num) {
       }   
       else {
          // ---> "block" the running process:
-         EnQ(run_pid, &video_sem.wait_q);  // 1. enqueue it to the wait queue in the semaphore
-         pcb[run_pid].state = WAIT;	   // 2. change its state
-         run_pid = -1;			   // 3. no running process anymore (lack one)        
+         EnQ(run_pid, &video_sem.wait_q); // 1. enqueue it to the wait queue in the semaphore
+         pcb[run_pid].state = WAIT;	   	// 2. change its state
+         run_pid = -1;			   			// 3. no running process anymore (lack one)        
       }
    }
    else {
@@ -132,6 +145,7 @@ void SempostService(int sem_num) {
       if(video_sem.wait_q.size == 0) 
          video_sem.val++;
       else {
+			// ---> "liberate" the process
          pid = DeQ(&video_sem.wait_q);//   1. dequeue it from the wait queue in the semaphore 
          pcb[pid].state = READY;      //   2. change its state
          EnQ(pid, &ready_pid_q);      //   3. enqueue the liberated process (ID) to the ready PID queue
@@ -146,15 +160,18 @@ void SempostService(int sem_num) {
 void TermService(int which) {
 	int i, pid;
 
-	if 1st character of dsp buffer is null, return; // nothing to dsp
-
-	outportb(term[which].data, term[which].dsp[0]); // disp 1st char
-
-	conduct a loop, one by one {:
-	move each character in dsp buffer forward by 1 character
-	if encounter moving a NULL character, break loop
+	if(term[which].dsp[0] == (char *)0) return; // if 1st character of dsp buffer is null, return; // nothing to dsp
 	
-}
+	outportb(term[which].port, term[which].dsp[0]); // disp 1st char
+
+	for(i=1; i<BUFF_SIZE; i++) {			            //conduct a loop, one by one 
+		term[which].dsp[i-1] = term[which].dsp[i];	//move each character in dsp buffer forward by 1 character
+	   //if encounter moving a NULL character, break loop; How will this work? Don't we need to move everything in the buffer forward?
+	}
+
+   if(term[which].dsp[0] = (char *)0) {
+      
+   }
 
 	if 1st char of dsp buffer is null and the wait queue has PID {
 		// str ends & there's a waiter

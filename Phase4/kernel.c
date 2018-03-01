@@ -42,15 +42,15 @@ void InitKernelControl(void) {     // init kernel control
    fill_gate(&IDT_p[SYSCALL], (int)SyscallEntry, get_cs(), ACC_INTR_GATE, 0);   //call fill_gate: fill out entry TIMER with TimerEntry
    fill_gate(&IDT_p[TERM1], (int)Term1Entry, get_cs(), ACC_INTR_GATE, 0);
    fill_gate(&IDT_p[TERM2], (int)Term2Entry, get_cs(), ACC_INTR_GATE, 0);   
-   outportb(0x21, ~(0x19));             //send PIC a mask value
+   outportb(0x21, ~(0x19));        //send PIC a mask value
 }
 
 void ProcScheduler(void) {         // choose run_pid to load/run
    if(run_pid > 0) return;         // no need if PID is a user proc
 
-   if(ready_pid_q.size == 0)       //if the ready_pid_q is empty: let run_pid be zero
+   if(ready_pid_q.size == 0)       // if the ready_pid_q is empty: let run_pid be zero
       run_pid = 0;
-   else                            //else: get the 1st one in ready_pid_q to be run_pid
+   else                            // else: get the 1st one in ready_pid_q to be run_pid
       run_pid = DeQ(&ready_pid_q);
    pcb[run_pid].totaltime += pcb[run_pid].runtime; 
    pcb[run_pid].runtime = 0;      
@@ -59,18 +59,18 @@ void ProcScheduler(void) {         // choose run_pid to load/run
 int main(void) {                   // OS bootstraps
    current_time = 0;
    video_sem.val = 1;
-   InitKernelData();               //initialize kernel data
-   InitKernelControl();            //initialize kernel control
+   InitKernelData();               // initialize kernel data
+   InitKernelControl();            // initialize kernel control
 
-   NewProcService(IdleProc);       //call NewProcService() with address of IdleProc to create it 
-   ProcScheduler();                //call ProcScheduler() to select a run_pid
-   ProcLoader(pcb[run_pid].trapframe_p);  //call ProcLoader() with address of the trapframe of the selected run_pid
+   NewProcService(IdleProc);       // call NewProcService() with address of IdleProc to create it 
+   ProcScheduler();                // call ProcScheduler() to select a run_pid
+   ProcLoader(pcb[run_pid].trapframe_p);  // call ProcLoader() with address of the trapframe of the selected run_pid
    return 0; // compiler needs for syntax altho this statement is never exec
 }
 
 void Kernel(trapframe_t *trapframe_p) {   // kernel code runs (100 times/second)
    char key;
-   pcb[run_pid].trapframe_p = trapframe_p;//save the trapframe_p to the PCB of run_pid
+   pcb[run_pid].trapframe_p = trapframe_p;// save the trapframe_p to the PCB of run_pid
    switch(trapframe_p->intr_num) {
 	case TIMER:
 		TimerService();
@@ -82,14 +82,14 @@ void Kernel(trapframe_t *trapframe_p) {   // kernel code runs (100 times/second)
 		cons_printf("Invalid intr");
 		break;
    }
-   if(cons_kbhit()) {             //if a key is pressed on target PC {
-      key = cons_getchar();       //get the key
-      if(key == 'n')              //if it's 'n,' call NewProcService() to create a UserProc
+   if(cons_kbhit()) {             // if a key is pressed on target PC {
+      key = cons_getchar();       // get the key
+      if(key == 'n')  
          NewProcService(UserProc);
-      if(key == 'b')              //if it's 'b,' call breakpoint() to go to the GDB prompt
+      if(key == 'b')     
          breakpoint();
    }
 
-   ProcScheduler();               //call ProcScheduler() to select run_pid
+   ProcScheduler();               // call ProcScheduler() to select run_pid
    ProcLoader(pcb[run_pid].trapframe_p);  //call ProcLoader() given the trapframe_p of the run_pid to load/run it
 }

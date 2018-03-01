@@ -15,7 +15,7 @@ void NewProcService(func_p_t proc_p) {  // arg: where process code starts
    int pid;
    if(avail_pid_q.size == 0) {          //if the size of avail_pid_q is 0 may occur as too many proc got created
       cons_printf("\nKERNEL PANIC: Plz No more clik clak"); //show on target PC: "Kernel Panic: no more process!\n"
-      return;                   // alternative: breakpoint()
+      return;                   	// alternative: breakpoint()
    }
 
    pid = DeQ(&avail_pid_q);     //get a 'pid' from avail_pid_q
@@ -54,36 +54,33 @@ void TimerService(void) {
 }
 
 void SyscallService(trapframe_t *p) {
-
-	switch(p->eax) {
-		case SYS_GETPID:
-			GetpidService(&p->ebx);
-			break;
-		case SYS_SLEEP: 
-			SleepService((int)p->ebx);
-			break;
-		case SYS_WRITE:
-			WriteService((int)p->ebx,(char *)p->ecx,(int)p->edx);
-			break;
-                case SYS_SEMWAIT:
-                        SemwaitService((int)p->ebx);
-                        break;
-                case SYS_SEMPOST:
-                        SempostService((int)p->ebx);
-                        break;
-		default:
-			cons_printf("Error due to p->eax being %d",p->eax);
-			break;			
-	}
+   switch(p->eax) {
+      case SYS_GETPID:
+         GetpidService(&p->ebx);
+         break;
+      case SYS_SLEEP: 
+         SleepService((int)p->ebx);
+         break;
+      case SYS_WRITE:
+         WriteService((int)p->ebx,(char *)p->ecx,(int)p->edx);
+         break;
+      case SYS_SEMWAIT:
+         SemwaitService((int)p->ebx);
+         break;
+      case SYS_SEMPOST:
+         SempostService((int)p->ebx);
+         break;
+      default:
+         cons_printf("Error due to p->eax being %d",p->eax);
+         break;			
+   }
 }
 
-void GetpidService(int *p)
-{
-	*p = run_pid;
+void GetpidService(int *p) {
+   *p = run_pid;
 }
 
 void SleepService(int centi_sec) {
-
    pcb[run_pid].wake_time = current_time + centi_sec;
    pcb[run_pid].state = SLEEP;
    run_pid = -1;	

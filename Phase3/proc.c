@@ -26,7 +26,7 @@ void UserProc(void) {
    centi_sec = 50 * my_pid;
 
    str[0] = '0' + my_pid/10;
-   str[1] = '0' + my_pid%10;s
+   str[1] = '0' + my_pid%10;
    
    while(1) {
       /* From Phase1 and Phase2

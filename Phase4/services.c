@@ -89,9 +89,14 @@ void SleepService(int centi_sec) {
 
 void WriteService(int fileno, char *str, int len) {
    static unsigned short *vga_p = (unsigned short *)0xb8000;
+<<<<<<< HEAD
    int i=0, which = fileno % 2;
 
    // Phase 2 & 3 writing to STDOUT
+=======
+   int w = 0;
+/* Phase 2/3
+>>>>>>> e1f057f8d12bc6d78ddc9a83850c1f0e4a5a3b1b
    if(fileno == STDOUT) {
 		for(i=0; i<len; i++) {
       	*vga_p = str[i] + 0xf00;
@@ -103,6 +108,7 @@ void WriteService(int fileno, char *str, int len) {
 	    		vga_p = (unsigned short *)0xb8000;	 
 	 		}
       }
+<<<<<<< HEAD
    } 
    // Phase 4
    else if (fileno == TERM1) {
@@ -112,6 +118,12 @@ void WriteService(int fileno, char *str, int len) {
       }
 		pcb[run_pid].state = WAIT; 
 		EnQ(run_pid, &term[which].dsp_wait_q);
+=======
+   } else 
+*/
+   if (fileno == TERM1) {
+		
+>>>>>>> e1f057f8d12bc6d78ddc9a83850c1f0e4a5a3b1b
 	} else if (fileno == TERM2) {
 		for(i=0; i<len; i++) {
          term[which].dsp[i] = *str;

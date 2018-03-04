@@ -22,7 +22,6 @@ int current_time;
 
 void InitKernelData(void) {        // init kernel data
    int i;
-   SplashScreen();
    run_pid = -1;                   //initialize run_pid (to negative 1)
    MyBzero((char *)&ready_pid_q, sizeof(pid_q_t));   //clear two PID queues
    MyBzero((char *)&avail_pid_q, sizeof(pid_q_t));   
@@ -85,20 +84,4 @@ void Kernel(trapframe_t *trapframe_p) {   // kernel code runs (100 times/second)
 
    ProcScheduler();               //call ProcScheduler() to select run_pid
    ProcLoader(pcb[run_pid].trapframe_p);  //call ProcLoader() given the trapframe_p of the run_pid to load/run it
-}
-
-void SplashScreen () {
-   //static unsigned short *vga_p = (unsigned short *)0xb8000;
-   // mask value 0xf00
-   //*vga_p = str[w] + ;
-   //	vga_p++;
-
-
-
-   if(vga_p >= (unsigned short *)0xb8000 + 25*80) {
-      int j;
-      for(j=0; j<25; j++)
-      cons_printf("\n"); 
-      vga_p = (unsigned short *)0xb8000;	 
-   }
 }

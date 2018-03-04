@@ -89,9 +89,14 @@ void SleepService(int centi_sec) {
 
 void WriteService(int fileno, char *str, int len) {
    static unsigned short *vga_p = (unsigned short *)0xb8000;
+<<<<<<< HEAD
    int i=0, which = fileno % 2;
 
    // Phase 2 & 3 writing to STDOUT
+=======
+   int w = 0;
+/*
+>>>>>>> e1f057f8d12bc6d78ddc9a83850c1f0e4a5a3b1b
    if(fileno == STDOUT) {
 		for(i=0; i<len; i++) {
       	*vga_p = str[i] + 0xf00;
@@ -103,6 +108,7 @@ void WriteService(int fileno, char *str, int len) {
 	    		vga_p = (unsigned short *)0xb8000;	 
 	 		}
       }
+<<<<<<< HEAD
    } 
    // Phase 4
    else if (fileno == TERM1) {
@@ -112,6 +118,12 @@ void WriteService(int fileno, char *str, int len) {
       }
 		pcb[run_pid].state = WAIT; 
 		EnQ(run_pid, &term[which].dsp_wait_q);
+=======
+   } else 
+*/
+   if (fileno == TERM1) {
+		
+>>>>>>> e1f057f8d12bc6d78ddc9a83850c1f0e4a5a3b1b
 	} else if (fileno == TERM2) {
 		for(i=0; i<len; i++) {
          term[which].dsp[i] = *str;
@@ -160,6 +172,7 @@ void SempostService(int sem_num) {
 void TermService(int which) {
 	int i, pid;
 
+<<<<<<< HEAD
 	if(term[which].dsp[0] == (char *)0) return; // if 1st character of dsp buffer is null, return; // nothing to dsp
 	
 	outportb(term[which].port, term[which].dsp[0]); // disp 1st char
@@ -172,6 +185,18 @@ void TermService(int which) {
    if(term[which].dsp[0] = (char *)0) {
       
    }
+=======
+	if 1st character of dsp buffer is null, return; // nothing to dsp
+
+	outportb(term[which].data, term[which].dsp[0]); // disp 1st char
+
+	conduct a loop, one by one {:
+	move each character in dsp buffer forward by 1 character
+	if encounter moving a NULL character, break loop
+	
+}
+
+>>>>>>> e1f057f8d12bc6d78ddc9a83850c1f0e4a5a3b1b
 	if 1st char of dsp buffer is null and the wait queue has PID {
 		// str ends & there's a waiter
 		// release the 1st waiter in the wait queue:

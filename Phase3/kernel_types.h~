@@ -31,7 +31,6 @@ typedef struct {
    int wake_time;	     // wake time of process given in centi-seconds = current OS time + sleep time requested
 } pcb_t;                     
 
-//Phase1
 typedef struct {             // generic queue type
    int q[Q_SIZE];            // integers are queued in q[] array
    int size;                 // size is also where the tail is for new data

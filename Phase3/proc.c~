@@ -37,7 +37,7 @@ void UserProc(void) {
       sys_semwait(STDOUT); 		// if commented out? Race Condition and multiple user procs will write to screen at the same time
       sys_write(STDOUT, str, 3);
       for(i=0; i<LOOP; i++) asm("inb $0x80"); // burn CPU time 
-      //****NOTE: For lab machines the LOOP/2 was changed to just LOOP for race condition to occur
+      //*NOTE: For lab machines the LOOP/2 was changed to just LOOP for race condition to occur
       sys_write(STDOUT, "using ", 6);
       for(i=0; i<LOOP; i++) asm("inb $0x80");
       sys_write(STDOUT, "the ", 4);

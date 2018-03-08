@@ -72,15 +72,21 @@ void Kernel(trapframe_t *trapframe_p) {   // kernel code runs (100 times/second)
    char key;
    pcb[run_pid].trapframe_p = trapframe_p;// save the trapframe_p to the PCB of run_pid
    switch(trapframe_p->intr_num) {
-	case TIMER:
-		TimerService();
-		break;
-	case SYSCALL:
-		SyscallService(trapframe_p);
-		break;
-	default:
-		cons_printf("Invalid intr");
-		break;
+	   case TIMER:
+		   TimerService();
+		   break;
+	   case SYSCALL:
+		   SyscallService(trapframe_p);
+		   break;
+      case TERM1:
+         WriteService(TERM1);
+         break;
+      case TERM2:
+
+         break;
+	   default:
+		   cons_printf("Invalid intr");
+		   break;
    }
    if(cons_kbhit()) {             // if a key is pressed on target PC {
       key = cons_getchar();       // get the key

@@ -41,7 +41,7 @@ void EnQ(int element, pid_q_t *p) {
 void MyStrcpy(char *dst, char *src) {
    while(*src != (char *)0) {
       *dst = *src;
-      src++;
-      dst++;
+      &src++;
+      &dst++;
    }
 }

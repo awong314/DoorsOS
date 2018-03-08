@@ -14,8 +14,8 @@ int count=0;
 void NewProcService(func_p_t proc_p) {  // arg: where process code starts
    int pid;
    if(avail_pid_q.size == 0) {          //if the size of avail_pid_q is 0 may occur as too many proc got created
-      cons_printf("\nKERNEL PANIC: Plz No more clik clak"); //show on target PC: "Kernel Panic: no more process!\n"
-      return;                   // alternative: breakpoint()
+      cons_printf("\nKERNEL PANIC: Plz No more clik clak"); 
+      return;                          // alternative: breakpoint()
    }
 
    pid = DeQ(&avail_pid_q);     //get a 'pid' from avail_pid_q
@@ -89,14 +89,9 @@ void SleepService(int centi_sec) {
 
 void WriteService(int fileno, char *str, int len) {
    static unsigned short *vga_p = (unsigned short *)0xb8000;
-<<<<<<< HEAD
-   int i=0, which = fileno % 2;
+   int i, which = fileno % 2;
 
    // Phase 2 & 3 writing to STDOUT
-=======
-   int w = 0;
-/* Phase 2/3
->>>>>>> e1f057f8d12bc6d78ddc9a83850c1f0e4a5a3b1b
    if(fileno == STDOUT) {
 		for(i=0; i<len; i++) {
       	*vga_p = str[i] + 0xf00;
@@ -108,30 +103,13 @@ void WriteService(int fileno, char *str, int len) {
 	    		vga_p = (unsigned short *)0xb8000;	 
 	 		}
       }
-<<<<<<< HEAD
    } 
    // Phase 4
-   else if (fileno == TERM1) {
-      for(i=0; i<len; i++) {
-         term[which].dsp[i] = *str;
-         str++;
-      }
+   else if (fileno == TERM1 || fileno == TERM2) {
+      MyStrcpy(term[which].dsp[i], str);
 		pcb[run_pid].state = WAIT; 
 		EnQ(run_pid, &term[which].dsp_wait_q);
-=======
-   } else 
-*/
-   if (fileno == TERM1) {
-		
->>>>>>> e1f057f8d12bc6d78ddc9a83850c1f0e4a5a3b1b
-	} else if (fileno == TERM2) {
-		for(i=0; i<len; i++) {
-         term[which].dsp[i] = *str;
-         str++;
-      }
-		pcb[run_pid].state = WAIT;
-		EnQ(run_pid, &term[which].dsp_wait_q);
-	}
+   }
 }
 
 void SemwaitService(int sem_num) {
@@ -169,6 +147,7 @@ void SempostService(int sem_num) {
    printf("video_sem: %d",video_sem.val);
 }
 
+//Phase 4
 void TermService(int which) {
 	int i, pid;
 
@@ -178,12 +157,8 @@ void TermService(int which) {
 
 	for(i=1; i<BUFF_SIZE; i++) {			            //conduct a loop, one by one 
 		term[which].dsp[i-1] = term[which].dsp[i];	//move each character in dsp buffer forward by 1 character
-	   //if encounter moving a NULL character, break loop; How will this work? Don't we need to move everything in the buffer forward?
+	   if (term[which].dsp[i] == (char *) 0) break; //if encounter moving a NULL character, break loop
 	}
-
-   if(term[which].dsp[0] = (char *)0) {
-      
-   }
 
 	if 1st char of dsp buffer is null and the wait queue has PID {
 		// str ends & there's a waiter

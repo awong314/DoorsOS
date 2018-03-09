@@ -13,7 +13,8 @@ __BEGIN_DECLS
 void TimerEntry(void);            // coded in entry.S, assembler won't like this syntax
 void ProcLoader(trapframe_t *);   // coded in entry.S
 void SyscallEntry(void);
-
+void Term1Entry(int);
+void Term2Entry(int);
 
 __END_DECLS
 

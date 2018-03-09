@@ -27,9 +27,11 @@ void InitKernelData(void) {
 	// Clear kernel data
    MyBzero((char *)&ready_pid_q, sizeof(pid_q_t)); //Phase1  
    MyBzero((char *)&avail_pid_q, sizeof(pid_q_t));	//Phase4
-	MyBzero((char *)&term[0], sizeof(term_t[2]));   //Phase4
-	term[0].port = 0x2f8;									//Phase4
-	term[1].port = 0x3e8;									//Phase4
+   MyBzero((char *)&term[0], sizeof(term_t));   //Phase4
+   MyBzero((char *)&term[1], sizeof(term_t));
+   term[0].port = 0x2f8;			//Phase4
+   term[1].port = 0x3e8;			//Phase4
+   
    for(i=0; i<Q_SIZE; i++) {       						//enqueue all PID numbers
       EnQ(i, &avail_pid_q);
    }
@@ -61,7 +63,7 @@ int main(void) {                   // OS bootstraps
    video_sem.val = 1;
    InitKernelData();               // initialize kernel data
    InitKernelControl();            // initialize kernel control
-
+   InitTerm();
    NewProcService(IdleProc);       // call NewProcService() with address of IdleProc to create it 
    ProcScheduler();                // call ProcScheduler() to select a run_pid
    ProcLoader(pcb[run_pid].trapframe_p);  // call ProcLoader() with address of the trapframe of the selected run_pid
@@ -70,23 +72,27 @@ int main(void) {                   // OS bootstraps
 
 void Kernel(trapframe_t *trapframe_p) {   // kernel code runs (100 times/second)
    char key;
-   pcb[run_pid].trapframe_p = trapframe_p;// save the trapframe_p to the PCB of run_pid
+   pcb[run_pid].trapframe_p = trapframe_p;// save the trapframe_p to the PCB of run_pid 
    switch(trapframe_p->intr_num) {
-	   case TIMER:
-		   TimerService();
-		   break;
-	   case SYSCALL:
-		   SyscallService(trapframe_p);
-		   break;
+      case TIMER:
+         TimerService();
+         break;
+      case SYSCALL:
+         SyscallService(trapframe_p);
+         break;
       case TERM1:
-         WriteService(TERM1);
-         break;
+        //WriteService(TERM1,trapframe_p->ecx,trapframe_p->edx);
+        TermService(0);
+	outportb(0x20,0x63); 
+	break;
       case TERM2:
-
-         break;
-	   default:
-		   cons_printf("Invalid intr");
-		   break;
+	//WriteService(TERM2,trapframe_p->ecx,trapframe_p->edx);
+        TermService(1); 
+        outportb(0x20,0x64);
+	break;
+      default:
+	cons_printf("Invalid intr");
+        break;
    }
    if(cons_kbhit()) {             // if a key is pressed on target PC {
       key = cons_getchar();       // get the key
@@ -98,4 +104,23 @@ void Kernel(trapframe_t *trapframe_p) {   // kernel code runs (100 times/second)
 
    ProcScheduler();               // call ProcScheduler() to select run_pid
    ProcLoader(pcb[run_pid].trapframe_p);  //call ProcLoader() given the trapframe_p of the run_pid to load/run it
+}
+
+void InitTerm(void) {
+	int i, j;
+
+	for(j=0; j<2; j++) {
+		outportb(term[j].port + CFCR, CFCR_DLAB);
+		outportb(term[j].port + BAUDLO, LOBYTE(115200/9600));
+		outportb(term[j].port + BAUDHI, HIBYTE(115200/9600));
+		outportb(term[j].port + CFCR, CFCR_PEVEN | CFCR_PENAB | CFCR_7BITS);
+
+		outportb(term[j].port + IER, 0);
+		outportb(term[j].port + MCR, MCR_DTR|MCR_RTS|MCR_IENABLE);
+		outportb(term[j].port + IER, IER_ERXRDY|IER_ETXRDY);
+
+		for(i=0;i<LOOP;i++) asm("inb $0x80");
+
+		inportb(term[j].port);		
+	}
 }

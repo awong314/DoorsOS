@@ -89,7 +89,8 @@ void SleepService(int centi_sec) {
 
 void WriteService(int fileno, char *str, int len) {
    static unsigned short *vga_p = (unsigned short *)0xb8000;
-   int i, which = fileno % 2;
+   int i; 
+   int which = fileno % 2;
 
    // Phase 2 & 3 writing to STDOUT
    if(fileno == STDOUT) {
@@ -106,9 +107,11 @@ void WriteService(int fileno, char *str, int len) {
    } 
    // Phase 4
    else if (fileno == TERM1 || fileno == TERM2) {
-      MyStrcpy(term[which].dsp[i], str);
-		pcb[run_pid].state = WAIT; 
-		EnQ(run_pid, &term[which].dsp_wait_q);
+      MyStrcpy(&term[which].dsp, str); 
+      EnQ(run_pid, &term[which].dsp_wait_q);
+      pcb[run_pid].state = WAIT;
+      run_pid = -1; 
+      TermService(which);
    }
 }
 
@@ -151,21 +154,24 @@ void SempostService(int sem_num) {
 void TermService(int which) {
 	int i, pid;
 
-	if(term[which].dsp[0] == (char *)0) return; // if 1st character of dsp buffer is null, return; // nothing to dsp
+	if(term[which].dsp[0] == '\0') return; // if 1st character of dsp buffer is null, return; // nothing to dsp
 	
 	outportb(term[which].port, term[which].dsp[0]); // disp 1st char
 
 	for(i=1; i<BUFF_SIZE; i++) {			            //conduct a loop, one by one 
 		term[which].dsp[i-1] = term[which].dsp[i];	//move each character in dsp buffer forward by 1 character
-	   if (term[which].dsp[i] == (char *) 0) break; //if encounter moving a NULL character, break loop
+	   if (term[which].dsp[i] == '\0') break; //if encounter moving a NULL character, break loop
 	}
 
-	if 1st char of dsp buffer is null and the wait queue has PID {
+	if(term[which].dsp[0] == '\0' && (term[which].dsp_wait_q.size != 0)) {
 		// str ends & there's a waiter
 		// release the 1st waiter in the wait queue:
-		1. dequeue it from the wait queue
-		2. update its state
-		3. enqueue it to ready PID queue
+		//1. dequeue it from the wait queue
+		//2. update its state
+		//3. enqueue it to ready PID queue
+		pid = DeQ(&term[which].dsp_wait_q);
+		pcb[pid].state = READY;
+		EnQ(pid, &ready_pid_q);
 	}
 }
 

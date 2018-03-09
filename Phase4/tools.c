@@ -39,7 +39,7 @@ void EnQ(int element, pid_q_t *p) {
 
 //Phase 4 String Copy Function
 void MyStrcpy(char *dst, char *src) {
-   while(*src != (char *)0) {
+   while(*src) {
       *dst = *src;
       src++;
       dst++;

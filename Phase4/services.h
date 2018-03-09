@@ -13,6 +13,6 @@ void SleepService(int);
 void WriteService(int, char*, int);
 void SemwaitService(int);
 void SempostService(int);
-
+void TermService(int);
 
 #endif

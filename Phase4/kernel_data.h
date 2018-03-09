@@ -17,4 +17,7 @@ extern int current_time;
 // Phase3
 extern semaphore_t video_sem;
 
+// Phase4
+extern term_t term[2];
+
 #endif                              // endif of ifndef

@@ -55,26 +55,26 @@ void TimerService(void) {
 
 void SyscallService(trapframe_t *p) {
 
-	switch(p->eax) {
-		case SYS_GETPID:
-			GetpidService(&p->ebx);
-			break;
-		case SYS_SLEEP: 
-			SleepService((int)p->ebx);
-			break;
-		case SYS_WRITE:
-			WriteService((int)p->ebx,(char *)p->ecx,(int)p->edx);
-			break;
-		case SYS_SEMWAIT:
+   switch(p->eax) {
+      case SYS_GETPID:
+         GetpidService(&p->ebx);
+	 break;
+      case SYS_SLEEP: 
+         SleepService((int)p->ebx);
+	 break;
+      case SYS_WRITE:
+         WriteService((int)p->ebx,(char *)p->ecx,(int)p->edx);
+	 break;
+      case SYS_SEMWAIT:
          SemwaitService((int)p->ebx);
          break;
-		case SYS_SEMPOST:
+      case SYS_SEMPOST:
          SempostService((int)p->ebx);
          break;
-		default:
-			cons_printf("Error due to p->eax being %d",p->eax);
-			break;			
-	}
+      default:
+         cons_printf("Error due to p->eax being %d",p->eax);
+	 break;			
+   }
 }
 
 void GetpidService(int *p) {
@@ -94,15 +94,15 @@ void WriteService(int fileno, char *str, int len) {
 
    // Phase 2 & 3 writing to STDOUT
    if(fileno == STDOUT) {
-		for(i=0; i<len; i++) {
-      	*vga_p = str[i] + 0xf00;
-	 		vga_p++;
-	 		if(vga_p >= (unsigned short *)0xb8000 + 25*80) {
-         	int j;
-	    		for(j=0; j<25; j++)
-	    		cons_printf("\n"); 
-	    		vga_p = (unsigned short *)0xb8000;	 
-	 		}
+      for(i=0; i<len; i++) {
+         *vga_p = str[i] + 0xf00;
+	 vga_p++;
+	 if(vga_p >= (unsigned short *)0xb8000 + 25*80) {
+            int j;
+	    // Use tools to clear screen starting at index top left of screen
+	    MyBzero((char*)0xb8000, 25*80*2);
+            vga_p = (unsigned short *)0xb8000;	 
+	 }
       }
    } 
    // Phase 4

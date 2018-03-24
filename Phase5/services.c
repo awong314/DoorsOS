@@ -71,6 +71,10 @@ void SyscallService(trapframe_t *p) {
       case SYS_SEMPOST:
          SempostService((int)p->ebx);
          break;
+      //Phase 5
+      case SYS_READ:
+         ReadService((int)p->ebx,(char *)p->ecx,(int)p->edx);  
+         break;
       default:
          cons_printf("Error due to p->eax being %d",p->eax);
          break;			
@@ -153,7 +157,7 @@ void SempostService(int sem_num) {
 //Phase 5 modified from Phase 4
 void TermService(int which) {
    if(term[which].status == DSP_READY) DspService(which);
-   if(term[which].status == KB_READY) KbService();
+   if(term[which].status == KB_READY) KbService(which);
 }
 
 //Same as TermService from Phase 4 so far
@@ -181,19 +185,41 @@ void DspService(int which) {
    }
 }
 
-void KbService() {
+/*
+   NOT DONE
+*/
+void KbService(int which) {
+   int pid;
+   char ch;
    //1. read a character from the 'port' of the terminal
+   ch = inportb(term[which].port);
+
    //2. also write it out via the 'port' of the terminal (to echo back)
+   outportb(term[which].port, ch);
+   
    //3. if what's read is NOT a '\r' (CR) key, append it to kb[] string
    //   of the terminal (use tool), and just return
+   if(ch != '\r') {
+      MyStrAppend(term[which].kb, ch);
+      return;
+   }
+
    //4. (not returning, continue) if there appears a waiting process in
    //   the kb wait queue of the terminal, release it and feed it the
    //   kb str it needs (use MyStrcpy)
+   if(term[which].kb_wait_q.size > 0) {
+      pid = DeQ(&term[which].kb_wait_q);
+      //MyStrcpy();
+   }
+   
    //5. reset the terminal kb string (put a single NUL at its start)
+   term[which].kb[0] = '\0';
 }
 
-void ReadService(int which) {
+void ReadService(int fileno, char *str, int len) {
    //Choose which term to use
+   int which = (fileno+1) % 2;
+
    //Block running proc to chosen term
    EnQ(run_pid, &term[which].kb_wait_q);
    pcb[run_pid].state = WAIT;

@@ -16,7 +16,7 @@ void SempostService(int);
 void TermService(int);
 //Phase 5
 void DspService(int);
-void KbService();
-void ReadService(int); 
+void KbService(int);
+void ReadService(int, char*, int); 
 
 #endif

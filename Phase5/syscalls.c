@@ -20,11 +20,11 @@ int sys_getpid(void) {
 void sys_write(int fileno, char *str, int len) {
    if(len==0) return;
 
-   asm("movl %0, %%eax;      // service #4 (SYS_WRITE) via eax
-      movl %1, %%ebx;	     // send in fileno via ebx (e.g., STDOUT)
-      movl %2, %%ecx;        // send in str addr via ecx
-      movl %3, %%edx;        // send in str length via edx
-      int $128;" 	     // initiate service call, intr 128 (IDT entry 128)
+   asm("movl %0, %%eax;       // service #4 (SYS_WRITE) via eax
+      movl %1, %%ebx;	      // send in fileno via ebx (e.g., STDOUT)
+      movl %2, %%ecx;         // send in str addr via ecx
+      movl %3, %%edx;         // send in str length via edx
+      int $128;" 	            // initiate service call, intr 128 (IDT entry 128)
       : 
       : "g" (SYS_WRITE), "g" (fileno), "g" ((int)str), "g" (len)
       : "eax", "ebx", "ecx", "edx"
@@ -32,15 +32,14 @@ void sys_write(int fileno, char *str, int len) {
 } 
 
 //Phase 5
-/* NEED TO CHECK THIS FUNCTION*/
 void sys_read(int fileno, char *str, int len) {
    if(len==0) return;
 
-   asm("movl %0, %%eax;      // service (SYS_READ) via eax
-      movl %1, %%ebx;	     // send in fileno via ebx (e.g., STDOUT)
-      movl %2, %%ecx;        // send in str addr via ecx
-      movl %3, %%edx;        // send in str length via edx
-      int $128;" 	     // initiate service call, intr 128 (IDT entry 128)
+   asm("movl %0, %%eax;       // service (SYS_READ) via eax
+      movl %1, %%ebx;	      // send in fileno via ebx (e.g., STDOUT)
+      movl %2, %%ecx;         // send in str addr via ecx
+      movl %3, %%edx;         // send in str length via edx
+      int $128;" 	            // initiate service call, intr 128 (IDT entry 128)
       : 
       : "g" (SYS_READ), "g" (fileno), "g" ((int)str), "g" (len)
       : "eax", "ebx", "ecx", "edx"
@@ -48,8 +47,8 @@ void sys_read(int fileno, char *str, int len) {
 } 
 
 void sys_sleep(int centi_sec) {	// 1 centi-second is 1/100 of a second
-   asm("movl %0, %%eax;      // service #162 (SYS_SLEEP)
-      movl %1, %%ebx;	     // send in centi-seconds via ebx
+   asm("movl %0, %%eax;       // service #162 (SYS_SLEEP)
+      movl %1, %%ebx;	      // send in centi-seconds via ebx
       int $128;"
       :
       : "g" (SYS_SLEEP), "g" (centi_sec)
@@ -58,8 +57,8 @@ void sys_sleep(int centi_sec) {	// 1 centi-second is 1/100 of a second
 }
 
 void sys_semwait(int sem_num) {
-  asm("movl %0, %%eax;      // service #300 (SYS_SEMWAIT)
-      movl %1, %%ebx;	    // send in sem_num via ebx
+  asm("movl %0, %%eax;        // service #300 (SYS_SEMWAIT)
+      movl %1, %%ebx;	      // send in sem_num via ebx
       int $128;"
       :
       : "g" (SYS_SEMWAIT), "g" (sem_num)

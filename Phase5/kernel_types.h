@@ -10,7 +10,7 @@ typedef void (*func_p_t)(); // void-return function pointer type
 typedef enum {AVAIL, READY, RUN, SLEEP, WAIT} state_t;   //SLEEP state added in Phase2
 
 typedef struct {
-   unsigned int regs[4];     // changed from regs[8] from Phase1
+   unsigned int regs[4];     
    unsigned int ebx,
 		edx,
 		ecx,

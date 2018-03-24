@@ -55,5 +55,9 @@ void MyStrShift(char *str) {
 }
 
 void MyStrAppend(char *str, char c) {
-   
+   while(*str) {
+      str++;
+   }
+   *str = c;
+   *(str+1) = '\0';
 }

@@ -75,6 +75,10 @@ void SyscallService(trapframe_t *p) {
       case SYS_READ:
          ReadService((int)p->ebx,(char *)p->ecx,(int)p->edx);  
          break;
+      //Phase 6
+      case SYS_FORK:
+         ForkService(&p->ebx);
+         break;
       default:
          cons_printf("Error due to p->eax being %d",p->eax);
          break;			
@@ -157,8 +161,7 @@ void SempostService(int sem_num) {
 //Phase 5 modified from Phase 4
 void TermService(int which) {
    int checker = inportb(term[which].status);
-   switch(checker)
-   {
+   switch(checker) {
       case DSP_READY:
          DspService(which);
          break;
@@ -166,8 +169,6 @@ void TermService(int which) {
          KbService(which);
          break;
    }
-   /*if(checker == DSP_READY) DspService(which);
-   if(checker == KB_READY) KbService(which);*/
 }
 
 //Same as TermService from Phase 4 so far
@@ -192,9 +193,6 @@ void DspService(int which) {
    }
 }
 
-/*
-   NOT DONE
-*/
 void KbService(int which) {
    int pid;
    char ch;
@@ -230,4 +228,42 @@ void ReadService(int fileno, char *str, int len) {
    EnQ(run_pid, &term[which].kb_wait_q);
    pcb[run_pid].state = WAIT;
    run_pid = -1;
+}
+
+//Phase 6
+void ForkService(int *ebx_p) {
+   int pid;
+
+   if(avail_pid_q.size == 0) {            //No PID's left
+      *ebx_p = -1;
+      cons_printf("No PID's left!!!\n");
+      return;
+   }
+
+   //Grab new PID for child
+   *ebx_p = DeQ(avail_pid_q);
+   //Enqueue the proc                
+   EnQ(*ebx_p, read_pid_q);   
+   
+   //Init the child PCB
+   MyBzero(pcb[*ebx_p], sizeof(pcb_t));   //Clear PCB of child
+   pcb[*ebx_p].state = READY;             
+   pcb[*ebx_p].ppid = run_pid;            //Set parent PID to the current running proc
+
+   //Duplicate parent's runtime stack to child's stack
+   
+
+   //set the ebx in the child's trapframe to 0 (so the syscall will return 0 for the child process)
+
+      calculate the address difference between the two stacks, and
+      apply it to these in child's trapframe: esp, ebp, esi, edi
+
+      (the following is the treatment for address changes of copied local
+      variables such as 'a_pid' which apperas in both parent and child)
+      about the ebp register in the child's trapframe:
+         set an integer pointer p to the value what ebp points to
+      loop on the condition that: the value what p points to is not 0:
+         adjust what it points to with the address difference, and
+         set p to this newly adjusted address, and
+         loop again
 }

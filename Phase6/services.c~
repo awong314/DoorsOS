@@ -75,8 +75,8 @@ void SyscallService(trapframe_t *p) {
       case SYS_READ:
          ReadService((int)p->ebx,(char *)p->ecx,(int)p->edx);  
          break;
-      //Phase 6
-      case SYS_FORK:
+      //Phase 6 
+      case SYS_FORK: //Passing in the ebx of the parent process
          ForkService(&p->ebx);
          break;
       default:
@@ -232,13 +232,13 @@ void ReadService(int fileno, char *str, int len) {
 
 //Phase 6
 void ForkService(int *ebx_p) {
-   int pid;
+   int offset;
 
    if(avail_pid_q.size == 0) {            //No PID's left
       *ebx_p = -1;
       cons_printf("No PID's left!!!\n");
       return;
-   }
+   } 
 
    //Grab new PID for child
    *ebx_p = DeQ(avail_pid_q);
@@ -251,19 +251,25 @@ void ForkService(int *ebx_p) {
    pcb[*ebx_p].ppid = run_pid;            //Set parent PID to the current running proc
 
    //Duplicate parent's runtime stack to child's stack
-   
+   MyMemcpy((char *)&proc_stack[run_pid][0], (char *)&proc_stack[*ebx_p][0], PROC_STACK_SIZE);
 
    //set the ebx in the child's trapframe to 0 (so the syscall will return 0 for the child process)
+   pcb[*ebx_p].trapframe_p->ebx = 0;
 
-      calculate the address difference between the two stacks, and
-      apply it to these in child's trapframe: esp, ebp, esi, edi
+   //Calculate the address difference between the two stacks, and
+   //Apply it to these in child's trapframe: esp, ebp, esi, edi
+   offset = &proc_stack[*ebx_p][0] - &proc_stack[run_pid][0];
+   pcb[*ebx_p].trapframe_p->esp += offset;
+   pcb[*ebx_p].trapframe_p->ebp += offset;
+   pcb[*ebx_p].trapframe_p->esi += offset;
+   pcb[*ebx_p].trapframe_p->edi += offset;
 
-      (the following is the treatment for address changes of copied local
-      variables such as 'a_pid' which apperas in both parent and child)
-      about the ebp register in the child's trapframe:
-         set an integer pointer p to the value what ebp points to
-      loop on the condition that: the value what p points to is not 0:
-         adjust what it points to with the address difference, and
-         set p to this newly adjusted address, and
-         loop again
+   //(the following is the treatment for address changes of copied local
+   //variables such as 'a_pid' which apperas in both parent and child)
+   //about the ebp register in the child's trapframe:
+   //set an integer pointer p to the value what ebp points to
+   //loop on the condition that: the value what p points to is not 0:
+   //adjust what it points to with the address difference, and
+   //set p to this newly adjusted address, and
+   //loop again
 }

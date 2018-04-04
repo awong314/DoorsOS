@@ -10,7 +10,5 @@ extern void sys_semwait(int);
 extern void sys_sempost(int);
 //Phase 5 
 extern void sys_read(int, char*, int);
-//Phase 6
-extern int sys_fork(void);
 
 #endif

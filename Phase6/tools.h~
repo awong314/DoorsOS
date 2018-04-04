@@ -14,9 +14,5 @@ void MyStrcpy(char *dst, char *src);
 void MyStrShift(char *str);
 void MyStrAppend(char *str, char c);
 
-//Phase 6
-int MyStrcmp(char *s1, char *s2);
-void MyMemcpy(char *dst, char *src, int bytes);
-
 #endif
 

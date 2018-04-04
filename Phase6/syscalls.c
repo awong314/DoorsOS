@@ -6,12 +6,12 @@
 int sys_getpid(void) {
    int pid;
 
-   asm("movl %1, %%eax;      // service #20 (SYS_GETPID)
-      int $128;	        // interrupt CPU with IDT entry 128
-      movl %%ebx, %0;"	     // after, copy ebx to variable 'pid'
-      : "=g" (pid)	        // output syntax
-      : "g" (SYS_GETPID)     // input syntax
-      : "eax", "ebx" 	     // used registers
+   asm("movl %1, %%eax;       // service #20 (SYS_GETPID)
+      int $128;	            // interrupt CPU with IDT entry 128
+      movl %%ebx, %0;"	      // after, copy ebx to variable 'pid'
+      : "=g" (pid)	         // output syntax
+      : "g" (SYS_GETPID)      // input syntax
+      : "eax", "ebx" 	      // used registers
    );
 
    return pid;
@@ -80,6 +80,7 @@ void sys_sempost(int sem_num) {
 int sys_fork(void) {
    int pid;
 
+   // might need to add more variables... maybe
    asm("movl %1, %%eax;       // service #2 (SYS_FORK)
       int $128;
       movl %%ebx, %0;"	      // after, copy ebx to variable 'pid'

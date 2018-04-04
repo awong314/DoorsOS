@@ -49,8 +49,7 @@ void MyStrcpy(char *dst, char *src) {
 
 //Phase 5 
 void MyStrShift(char *str) {
-   while(*str) {    
-      if(*str == '\0') return;  
+   while(*str) {      
       *str = *(str+1);
       str++;
    }
@@ -68,7 +67,7 @@ void MyStrAppend(char *str, char c) {
 
 //Phase 6
 int MyStrcmp(char *s1, char *s2) {
-   while(*s1 || *s2) {
+   while(*s1 && *s2) {
       if(*s1 != *s2) return 0;   //Return FALSE
       s1++;
       s2++;

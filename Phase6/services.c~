@@ -265,11 +265,14 @@ void ForkService(int *ebx_p) {
    pcb[*ebx_p].trapframe_p->edi += offset;
 
    //(the following is the treatment for address changes of copied local
-   //variables such as 'a_pid' which apperas in both parent and child)
+   //variables such as the returned pid which apperas in both parent and child)
    //about the ebp register in the child's trapframe:
-   //set an integer pointer p to the value what ebp points to
+      //set an integer pointer p to the value what ebp points to
+      int *p = ebx_p;
    //loop on the condition that: the value what p points to is not 0:
-   //adjust what it points to with the address difference, and
-   //set p to this newly adjusted address, and
-   //loop again
+   while(*p != 0) {
+      //adjust what it points to with the address difference, and
+      
+      //set p to this newly adjusted address, and
+      //loop again
 }

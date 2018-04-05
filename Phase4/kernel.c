@@ -83,15 +83,15 @@ void Kernel(trapframe_t *trapframe_p) {   // kernel code runs (100 times/second)
       case TERM1:
         //WriteService(TERM1,trapframe_p->ecx,trapframe_p->edx);
         TermService(0);
-	outportb(0x20,0x63); 
-	break;
+	     outportb(0x20,0x63); 
+	     break;
       case TERM2:
-	//WriteService(TERM2,trapframe_p->ecx,trapframe_p->edx);
+	     //WriteService(TERM2,trapframe_p->ecx,trapframe_p->edx);
         TermService(1); 
         outportb(0x20,0x64);
-	break;
+	     break;
       default:
-	cons_printf("Invalid intr");
+	     cons_printf("Invalid intr");
         break;
    }
    if(cons_kbhit()) {             // if a key is pressed on target PC {

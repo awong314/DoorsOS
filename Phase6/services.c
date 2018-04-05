@@ -252,13 +252,16 @@ void ForkService(int *ebx_p) {
 
    //Duplicate parent's runtime stack to child's stack
    MyMemcpy((char *)&proc_stack[run_pid][0], (char *)&proc_stack[*ebx_p][0], PROC_STACK_SIZE);
-
+   
+   //move after?
    //set the ebx in the child's trapframe to 0 (so the syscall will return 0 for the child process)
    pcb[*ebx_p].trapframe_p->ebx = 0;
 
    //Calculate the address difference between the two stacks, and
    //Apply it to these in child's trapframe: esp, ebp, esi, edi
    offset = &proc_stack[*ebx_p][0] - &proc_stack[run_pid][0];
+   //set address of the childs trapframe by offsetting parents trapframe
+
    pcb[*ebx_p].trapframe_p->esp += offset;
    pcb[*ebx_p].trapframe_p->ebp += offset;
    pcb[*ebx_p].trapframe_p->esi += offset;
@@ -267,9 +270,12 @@ void ForkService(int *ebx_p) {
    //(the following is the treatment for address changes of copied local
    //variables such as the returned pid which apperas in both parent and child)
    //about the ebp register in the child's trapframe:
-   //set an integer pointer p to the value what ebp points to
+      //set an integer pointer p to the value what ebp points to
+      int *p = //?
    //loop on the condition that: the value what p points to is not 0:
-   //adjust what it points to with the address difference, and
-   //set p to this newly adjusted address, and
-   //loop again
+   while(*p) {
+      //adjust what it points to with the address difference, and
+      
+      //set p to this newly adjusted address, and
+      //loop again
 }

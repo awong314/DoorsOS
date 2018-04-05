@@ -67,7 +67,7 @@ void MyStrAppend(char *str, char c) {
 
 //Phase 6
 int MyStrcmp(char *s1, char *s2) {
-   while(*s1 && *s2) {
+   while(*s1 || *s2) {
       if(*s1 != *s2) return 0;   //Return FALSE
       s1++;
       s2++;

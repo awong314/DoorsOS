@@ -58,13 +58,13 @@ void SyscallService(trapframe_t *p) {
    switch(p->eax) {
       case SYS_GETPID:
          GetpidService(&p->ebx);
-	      break;
+	 break;
       case SYS_SLEEP: 
          SleepService((int)p->ebx);
-         break;
+	 break;
       case SYS_WRITE:
          WriteService((int)p->ebx,(char *)p->ecx,(int)p->edx);
-	      break;
+	 break;
       case SYS_SEMWAIT:
          SemwaitService((int)p->ebx);
          break;
@@ -73,7 +73,7 @@ void SyscallService(trapframe_t *p) {
          break;
       default:
          cons_printf("Error due to p->eax being %d",p->eax);
-         break;			
+	 break;			
    }
 }
 

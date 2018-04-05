@@ -214,7 +214,7 @@ void KbService(int which) {
       pid = DeQ(&term[which].kb_wait_q);
       pcb[pid].state = READY;
       EnQ(pid, &ready_pid_q);
-      MyStrcpy((char *)pcb[pid].trapframe_p->ecx,term[which].kb);  
+      MyStrcpy((char *)pcb[pid].trapframe_p->ecx, term[which].kb);  
       // Reset the terminal kb string (put a single NUL at its start)
       term[which].kb[0] = '\0'; 
    }
@@ -232,50 +232,54 @@ void ReadService(int fileno, char *str, int len) {
 
 //Phase 6
 void ForkService(int *ebx_p) {
-   int offset;
+   int offset, cpid;
+   int *p;
 
-   if(avail_pid_q.size == 0) {            //No PID's left
+   // No PID's left
+   if(avail_pid_q.size == 0) {            
       *ebx_p = -1;
       cons_printf("No PID's left!!!\n");
       return;
    } 
 
-   //Grab new PID for child
-   *ebx_p = DeQ(avail_pid_q);
-   //Enqueue the proc                
-   EnQ(*ebx_p, read_pid_q);   
+   // Grab new PID for child
+   cpid = *ebx_p = DeQ(&avail_pid_q);
+
+   // Enqueue the proc                
+   EnQ(cpid, &ready_pid_q);   
    
-   //Init the child PCB
-   MyBzero(pcb[*ebx_p], sizeof(pcb_t));   //Clear PCB of child
-   pcb[*ebx_p].state = READY;             
-   pcb[*ebx_p].ppid = run_pid;            //Set parent PID to the current running proc
+   // Init the child PCB
+   MyBzero((char*)&pcb[cpid], sizeof(pcb_t));   // Clear PCB of child
+   pcb[cpid].state = READY;             
+   pcb[cpid].ppid = run_pid;            // Set parent PID to the current running proc
 
-   //Duplicate parent's runtime stack to child's stack
-   MyMemcpy((char *)&proc_stack[run_pid][0], (char *)&proc_stack[*ebx_p][0], PROC_STACK_SIZE);
+   // Duplicate parent's runtime stack to child's stack
+   MyMemcpy((char *)&proc_stack[run_pid][0], (char *)&proc_stack[cpid][0], PROC_STACK_SIZE);
+
+   // Calculate the address difference between the two stacks, and
+   // Apply it to these in child's trapframe: esp, ebp, esi, edi
+   offset = &proc_stack[cpid][0] - &proc_stack[run_pid][0];   
+
+   // Calculate the child trapframe location 
+   pcb[cpid].trapframe_p = (trapframe_t*)((int)pcb[run_pid].trapframe_p + offset);
    
-   //move after?
-   //set the ebx in the child's trapframe to 0 (so the syscall will return 0 for the child process)
-   pcb[*ebx_p].trapframe_p->ebx = 0;
+   // Calculate esp, ebp, esi, edi
+   pcb[cpid].trapframe_p->esp += offset;
+   pcb[cpid].trapframe_p->ebp += offset;
+   pcb[cpid].trapframe_p->esi += offset;
+   pcb[cpid].trapframe_p->edi += offset;
 
-   //Calculate the address difference between the two stacks, and
-   //Apply it to these in child's trapframe: esp, ebp, esi, edi
-   offset = &proc_stack[*ebx_p][0] - &proc_stack[run_pid][0];
-   //set address of the childs trapframe by offsetting parents trapframe
+   // Set ebx in the child's trapframe to 0 (syscall will return 0 for child process)
+   pcb[cpid].trapframe_p->ebx = 0;
 
-   pcb[*ebx_p].trapframe_p->esp += offset;
-   pcb[*ebx_p].trapframe_p->ebp += offset;
-   pcb[*ebx_p].trapframe_p->esi += offset;
-   pcb[*ebx_p].trapframe_p->edi += offset;
+   // Set an integer pointer p to the value what ebp points to.
+   p = (int*)pcb[cpid].trapframe_p->ebp;
 
-   //(the following is the treatment for address changes of copied local
-   //variables such as the returned pid which apperas in both parent and child)
-   //about the ebp register in the child's trapframe:
-      //set an integer pointer p to the value what ebp points to
-      int *p = //?
-   //loop on the condition that: the value what p points to is not 0:
+   // If what p points to is not 0.
    while(*p) {
-      //adjust what it points to with the address difference, and
-      
-      //set p to this newly adjusted address, and
-      //loop again
+      // Adjust what it points to with the address difference.
+      *p += offset;
+      // Set p to this newly adjusted address.
+      p = (int*)*p;
+   }
 }

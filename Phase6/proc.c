@@ -6,6 +6,7 @@
 #include "kernel_data.h" // run_pid needed below
 #include "syscalls.h"    // prototypes of the system calls
 #include "proc.h"        // prototypes of processes
+#include "tools.h"
 
 void IdleProc(void) {
    int i;
@@ -18,6 +19,7 @@ void IdleProc(void) {
    }
 }
 
+/*
 // Phase 5 Userproc
 void UserProc(void) {
    int my_pid, centi_sec, which;
@@ -43,38 +45,39 @@ void UserProc(void) {
       sys_sleep(centi_sec);             // sleep for .5 sec x PID
    }
 }
+*/ 
 
 // Phase 6 
 void ChildStuff(int which) {  // which terminal to display msg
    int my_pid, centi_sec;
+   char str[] = "   ";
 
-   //1. get my PID
+   // Get my PID
    my_pid = sys_getpid();
 
-   //2. calcalute sleep period (multiple of .5 seconds times my PID)
+   // Calcalute sleep period (multiple of .5 seconds times my PID)
    centi_sec = 50 * my_pid;
 
-   //3. build a string based on my PID
+   // Build a string based on my PID
+   str[0] = '0' + my_pid/10;
+   str[1] = '0' + my_pid%10;
 
-   //4. loop forever:
-   //a. show the msg (see demo for exact content, need multiple sys_write() calls)
+   // Loop forever: show msg need multiple sys_write() calls
    while(1) {
       sys_write(which, "\n\r", 2);        // get a new line
       sys_write(which, str, 3);           // to show my PID
       sys_write(which, "I ", 6);          // and other msgs
       sys_write(which, "shell ", 6);
       sys_write(which, "command: ", 9);
-      sys_read(which, cmd, BUFF_SIZE);    // here we read term KB
-      sys_write(which, "You've entered: ", 16);
-      sys_write(which, cmd, BUFF_SIZE);   // verify what's read
       sys_sleep(centi_sec);               // sleep for .5 sec x PID
    }
    
 }
 
 void UserProc(void) {
-   int my_pid, centi_sec, which;
+   int my_pid, cpid, centi_sec, which;
    char str[] = "   ";
+   char str1[] = "   ";
    char cmd[BUFF_SIZE];
 
    my_pid = sys_getpid();
@@ -95,31 +98,27 @@ void UserProc(void) {
       sys_write(which, cmd, BUFF_SIZE);   // verify what's read
       sys_sleep(centi_sec);               // sleep for .5 sec x PID
       if(MyStrcmp(cmd, "fork")) {
-         switch(sys_fork()) {
+         cpid = sys_fork();
+         switch(cpid) {
             case -1:
+               // Show error message (OS failed to fork)
                cons_printf("Fork failed try chopsticks...\n");
                break;
             case 0:
+               // Child process created, let it do ChildStuff()
                ChildStuff(which);
                break;
             default:
-               
+               // Build a str from pid and show it (see demo for exact content)
+               str1[0] = '0' + cpid/10;
+               str1[1] = '0' + cpid%10;
+               sys_write(which, "\n\r", 2);        // get a new line
+               sys_write(which, "UserProc ", 9);     
+               sys_write(which, "forked ", 7);
+               sys_write(which, "a child, ", 9);     
+               sys_write(which, "PID ", 4);
+               sys_write(which, str1, 3);
          }
       }
-   }
-
-   //in the forever loop:
-   while(1) {   
-      ...
-      after reading 'cmd'
-      
-      use MyStrcmp(to check if 'cmd' matches "fork"
-      if so,
-         1. call for the fork syscall which returns a pid
-         2. if the pid is:
-            a. -1, show error message (OS failed to fork)
-            b. 0, child process created, let it do ChildStuff()
-            c. >0, build a str for a_pid and show it (see demo for exact content)
-      ...
    }
 }

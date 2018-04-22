@@ -2,6 +2,7 @@
 // calls to kernel services
 
 #include "kernel_constants.h" // SYS_WRITE 4, SYS_GETPID 20, etc.
+#include "kernel_types.h"
 
 int sys_getpid(void) {
    int pid;
@@ -47,7 +48,7 @@ void sys_read(int fileno, char *str, int len) {
 } 
 
 void sys_sleep(int centi_sec) {	// 1 centi-second is 1/100 of a second
-   asm("movl %0, %%eax;       // service #162 (SYS_SLEEP)
+   asm("movl %0, %%eax;       // Service #162 SLEEP
       movl %1, %%ebx;	      // send in centi-seconds via ebx
       int $128;"
       :
@@ -57,7 +58,7 @@ void sys_sleep(int centi_sec) {	// 1 centi-second is 1/100 of a second
 }
 
 void sys_semwait(int sem_num) {
-  asm("movl %0, %%eax;        // service #300 (SYS_SEMWAIT)
+  asm("movl %0, %%eax;        // Service #300 SEMWAIT
       movl %1, %%ebx;	      // send in sem_num via ebx
       int $128;"
       :
@@ -67,7 +68,7 @@ void sys_semwait(int sem_num) {
 }
 
 void sys_sempost(int sem_num) {
-   asm("movl %0, %%eax;       // service #301 (SYS_SEMPOST)
+   asm("movl %0, %%eax;       // Service #301 SEMPOST
       movl %1, %%ebx;	      // send in sem_num via ebx
       int $128;"
       :
@@ -80,7 +81,7 @@ void sys_sempost(int sem_num) {
 int sys_fork(void) {
    int pid;
 
-   asm("movl %1, %%eax;       // service #2 (SYS_FORK)
+   asm("movl %1, %%eax;       // Service #2 Fork
       int $128;
       movl %%ebx, %0;"	      // after, copy ebx to variable 'pid'
       : "=g" (pid)
@@ -90,3 +91,57 @@ int sys_fork(void) {
 
    return pid;
 }
+
+//Phase 7
+int sys_getppid() {
+   int pid;
+
+   asm("movl %1, %%eax;       
+      int $128;	           
+      movl %%ebx, %0;"	      
+      : "=g" (pid)	         
+      : "g" (SYS_PPID)      
+      : "eax", "ebx" 	      
+   );
+   return pid;
+}
+
+void sys_signal(int signal, func_p_t p) {
+  asm("movl %0, %%eax;        // Service #48 Signal
+      movl %1, %%ebx;	      // send in signal via ebx 
+      movl %2, %%ecx;         // send in p addr via ecx
+      int $128;"
+      :
+      : "g" (SYS_SIGNAL), "g" (signal), "g" ((int)p)
+      : "eax", "ebx", "ecx"
+   ); 
+}
+
+// PHASE 8
+void sys_exit(int exit_code) {
+   asm("movl %0, %%eax;
+      movl %1, %%ebx;    // put exit_code to ebx
+      int $128;"         
+      :
+      :  "g" (SYS_EXIT), "g" (exit_code)
+      :  "eax", "ebx"
+   );
+}
+
+int sys_waitchild(int *exit_code_p) {
+   int child_pid;
+   asm(" movl %1, %%eax;
+      movl %2, %%ebx;
+      int $128;
+      movl %%ecx, %0"   // copy ecx to child_pid
+      :  "=g" (child_pid)
+      :  "g" (SYS_WAITCHILD), "g" ((int)exit_code_p)
+      :  "eax", "ebx", "ecx"
+   );
+   return child_pid;
+}
+
+
+
+
+

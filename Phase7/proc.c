@@ -56,6 +56,9 @@ void UserProc(void) {
    str[1] = '0' + my_pid%10;
 
    which = (my_pid % 2)? TERM1 : TERM2;   //Determine which terminal to go to
+   
+   // Phase 7  
+   sys_signal(SIGINT, &Ouch);  // Register handler routine for SIGINT
 
    while(1) {
       sys_write(which, "\n\r", 2);        // get a new line
@@ -89,3 +92,21 @@ void UserProc(void) {
       sys_sleep(centi_sec);               // sleep for .5 sec x PID
    }
 }
+
+// Phase 7
+void Wrapper(func_p_t p) {             // arg implanted in stack
+   asm("pusha");                       // save regs
+   p();                                // call user's signal handler
+   asm("popa");                        // pop back regs
+}
+
+void Ouch(void) {                      // signal handler
+   int ppid, which;
+
+   ppid = sys_getppid();               // follow parent
+   if (ppid == 0) ppid = sys_getpid(); // no parent, use own PID
+
+   which = ppid % 2 ? TERM1 : TERM2;
+   sys_write(which, "Ouch, don't touch that! ", 24);
+}
+

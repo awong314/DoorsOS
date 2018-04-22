@@ -21,7 +21,7 @@ void IdleProc(void) {
 
 // Phase 6 
 void ChildStuff(int which) {  // which terminal to display msg
-   int my_pid, centi_sec;
+   int i, my_pid, centi_sec;
    char str[] = "   ";
 
    // Get my PID
@@ -34,20 +34,20 @@ void ChildStuff(int which) {  // which terminal to display msg
    str[0] = '0' + my_pid/10;
    str[1] = '0' + my_pid%10;
 
-   // Loop forever: show msg need multiple sys_write() calls
-   while(1) {
-      sys_write(which, "\n\r", 2);        // get a new line
-      sys_write(which, "I'm the child, PID ", 19);          // and other msgs
-      sys_write(which, str, 3);           // to show my PID
-      sys_sleep(centi_sec);               // sleep for .5 sec x PID
+   // Phase 8
+   for(i=0; i<3; i++) {
+      sys_write(which, "\n\r", 2);
+      sys_write(which, "I'm the child, PID ", 19);
+      sys_write(which, str, 3);
+      sys_sleep(centi_sec);
    }
-   
+
+   sys_exit(100 - my_pid);
 }
 
 void UserProc(void) {
    int my_pid, cpid, centi_sec, which;
    char str[] = "   ";
-   char str1[] = "   ";
    char cmd[BUFF_SIZE];
 
    my_pid = sys_getpid();
@@ -56,6 +56,9 @@ void UserProc(void) {
    str[1] = '0' + my_pid%10;
 
    which = (my_pid % 2)? TERM1 : TERM2;   //Determine which terminal to go to
+   
+   // Phase 7  
+   sys_signal(SIGINT, &Ouch);  // Register handler routine for SIGINT
 
    while(1) {
       sys_write(which, "\n\r", 2);        // get a new line
@@ -71,21 +74,76 @@ void UserProc(void) {
          switch(cpid) {
             case -1:
                // Show error message (OS failed to fork)
-               sys_write(which, "Fork failed try chopsticks or icecream...\n", 29);
+               sys_write(which, "\n\rUserProc: cannot fork!\n\r", 28);
                break;
             case 0:
                // Child process created, let it do ChildStuff()
                ChildStuff(which);
                break;
             default:
-               // Build a str from pid and show it (see demo for exact content)
-               str1[0] = '0' + cpid/10;
-               str1[1] = '0' + cpid%10;
-               sys_write(which, "\n\rUserProc: forked a child, PID", 32);        
-               sys_write(which, str1, 3);
+               // Phase 8 Go waitchild immediately
+               ChildHandler();
+               break;
+         }
+      } else if(MyStrcmp(cmd, "fork&") || MyStrcmp(cmd, "fork &")) {
+         sys_signal(SIGCHILD, ChildHandler);
+         cpid = sys_fork();
+         switch(cpid) {
+            case -1:
+               sys_write(which, "\n\rUserProc: cannot fork!\n\r", 28);
+               sys_signal(SIGCHILD, NULL);
+               break;
+            case 0:
+               ChildStuff(which);
+               break;
+            default:
+               // NOTHING
                break;
          }
       }
       sys_sleep(centi_sec);               // sleep for .5 sec x PID
    }
 }
+
+// Phase 7
+void Wrapper(func_p_t p) {             // arg implanted in stack
+   asm("pusha");                       // save regs
+   p();                                // call user's signal handler
+   asm("popa");                        // pop back regs
+   asm("mov %%ebp, %%esp; pop %%ebp; ret $4"::);
+}
+
+void Ouch(void) {                      // signal handler
+   int ppid, which;
+
+   ppid = sys_getppid();               // follow parent
+   if (ppid == 0) ppid = sys_getpid(); // no parent, use own PID
+
+   which = ppid % 2 ? TERM1 : TERM2;
+   sys_write(which, "Ouch, don't touch that! ", 24);
+}
+
+// Phase 8
+void ChildHandler(void) {
+   int which, child_pid, exit_code, temp;
+   char str[] = "   ";
+
+   child_pid = sys_waitchild(&exit_code);
+   // Determine which terminal to use (from its own PID)
+   temp = pcb[child_pid].ppid;
+   which = temp % 2 ? TERM1 : TERM2;
+   // Build str from child_pid
+   str[0] = '0' + child_pid/10;
+   str[1] = '0' + child_pid%10;
+   // Show the message
+   sys_write(which, "The child PID ", 14);
+   sys_write(which, str, 3);
+   sys_write(which, " exited, ", 9);
+   // Build str from exit_code
+   str[0] = '0' + exit_code/10;
+   str[1] = '0' + exit_code%10;
+   // Show the message
+   sys_write(which, "exit code = ", 12);
+   sys_write(which, str, 3);
+}
+

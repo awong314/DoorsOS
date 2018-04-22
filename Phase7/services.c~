@@ -71,13 +71,20 @@ void SyscallService(trapframe_t *p) {
       case SYS_SEMPOST:
          SempostService((int)p->ebx);
          break;
-      //Phase 5
+      // Phase 5
       case SYS_READ:
          ReadService((int)p->ebx,(char *)p->ecx,(int)p->edx);  
          break;
-      //Phase 6 
+      // Phase 6 
       case SYS_FORK: //Passing in the ebx of the parent process
          ForkService(&p->ebx);
+         break;
+      // Phase 7
+      case SYS_SIGNAL:
+         SignalService((int)p->ebx, (func_p_t)(p->ecx));
+         break;
+      case SYS_PPID:
+         GetppidService(&p->ebx);
          break;
       default:
          cons_printf("Error due to p->eax being %d",p->eax);
@@ -201,17 +208,34 @@ void KbService(int which) {
    // Also write it out via the 'port' of the terminal (to echo back)
    outportb(term[which].port, ch);
    
+   // Phase 7 
+   // If the read character is ctrl-C
+   if (ch == (char)3) {
+      // If there is a proc in kb wait q
+      if(term[which].kb_wait_q.size > 0) {
+         // Release the waiting process        
+         pid = DeQ(&term[which].kb_wait_q);
+         pcb[pid].state = READY;
+         EnQ(pid, &ready_pid_q);  
+         // If the proc has handler routine for ^C call WrapperService
+         if(signal_table[pid][SIGINT]) { 
+            WrapperService(pid, signal_table[pid][SIGINT]);         
+         } else {
+            // echo back to terminal a caret 
+            outportb(term[which].port, '^');
+         } 
+      } else { return; }
+   } 
    // If what's read is NOT a '\r' (CR) key, append it to kb[] string
-   if(ch != '\r') {
+   else if (ch != '\r') {
       MyStrAppend(term[which].kb, ch);
       return;
-   } else {
+   } 
+   else {
       outportb(term[which].port, '\n');
    }
 
-   // (not returning, continue) if there appears a waiting process in
-   //  the kb wait queue of the terminal, release it and feed it the
-   //  kb str it needs (use MyStrcpy)
+   // if there is waiting process in kb_wait_q of the term, release and feed the kb str
    if(term[which].kb_wait_q.size > 0) {
       pid = DeQ(&term[which].kb_wait_q);
       pcb[pid].state = READY;
@@ -284,4 +308,50 @@ void ForkService(int *ebx_p) {
       // Set p to this newly adjusted address.
       p = (int*)*p;
    }
+   
+
+   // Phase 7
+   // Child also inherits parent's sig table (copy over entries in the table)
+   MyMemcpy((char *)&signal_table[cpid], (char *)&signal_table[run_pid], sizeof(func_p_t)*SIG_NUM);
 }
+
+// Phase 7
+void SignalService(int signal, func_p_t p) {
+   signal_table[run_pid][signal] = p;
+}
+
+void WrapperService(int pid, func_p_t p) {
+   // Temporary trapframe var
+   trapframe_t t;
+   // Vacant location for p and old eip
+   int* vacant;
+
+   // Copy process trapframe to a local/temporary trapframe
+   t = *pcb[pid].trapframe_p;
+
+   // Lower the trapframe location info (in PCB) by 8 bytes
+   (int)pcb[pid].trapframe_p -= 8;
+
+   // Copy temporary trapframe to the new lowered location
+   MyMemcpy((char*)pcb[pid].trapframe_p, (char*)&t, sizeof(t));
+
+   // The vacated 8 bytes: put 'p' and 'eip' of the old trapframe there
+   vacant = (int*)((int)pcb[pid].trapframe_p + sizeof(trapframe_t));
+   *vacant = pcb[pid].trapframe_p->eip;
+   vacant++;
+   *(func_p_t*)vacant = p;
+
+   // Change 'eip' in the copied trapframe to address of Wrapper()
+   pcb[pid].trapframe_p->eip = (int)Wrapper;
+}
+
+void GetppidService(int *p) {
+	*p = pcb[run_pid].ppid;
+}
+
+
+
+
+
+
+

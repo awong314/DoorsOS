@@ -365,6 +365,7 @@ void ExitService(int exit_code) {
    
    if(pcb[ppid].state != WAITCHILD) {
       pcb[run_pid].state = ZOMBIE;        // Change child state to zombie to reclaim l8er
+      //pcb[run_pid].trapframe_p->ecx = exit_code; 
       run_pid = -1;                       // Rst run_pid (resources still used)
       if(signal_table[ppid][SIGCHILD]) {  // If parent has SIGCHILD handler registered
          WrapperService(ppid, signal_table[ppid][SIGCHILD]); // Runtime redirection service

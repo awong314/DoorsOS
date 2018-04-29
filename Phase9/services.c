@@ -94,11 +94,11 @@ void SyscallService(trapframe_t *p) {
          WaitchildService((int *)p->ebx, &p->ecx);
          break;
       case SYS_EXEC:
-         ExitService(&p->ecx, (int *)p->ebx);        
+         ExecService((func_p_t)(p->ebx), p->ecx);        
          break;
       default:
          cons_printf("Error due to p->eax being %d",p->eax);
-         break;			
+         break;
    }
 }
 
@@ -425,9 +425,13 @@ void WaitchildService(int *exit_code_p, int *child_pid_p) {
 }
 
 // Phase 9
-void ExecService(int *p, int arg {
+void ExecService(func_p_t p, int arg) {
+   int page;
+   func_p_t pAddr;
+   trapframe_t *trapframeDRAMloc; 
+   int *argAddr;
    /*
-   he void returning ExecService is called with two arguments:
+   The void returning ExecService is called with two arguments:
       1. addr of a function 'p' to switch running to there
       2. an integer argument 'arg' for the function to get when it runs
 
@@ -445,7 +449,50 @@ void ExecService(int *p, int arg {
       of code starts (do not change eip to 'p')
 
    */
+   
+   if(page_q.size == 0) {
+      cons_printf("No page's left!!!\n");
+      return;
+   } 
+   
+   page = DeQ(&page_q); 
+   pcb[run_pid].page = page;
+   pAddr = (func_p_t)(PAGE_BASE + (page*PAGE_SIZE));
+   argAddr = (int*)((int)pAddr+PAGE_SIZE-4);
+   trapframeDRAMloc = (trapframe_t *)((int)pAddr+PAGE_SIZE-8-sizeof(trapframe_t));
+   
+   
+   MyMemcpy((char*)pAddr, (char*)p, PAGE_SIZE);
+   *argAddr = arg;
+   MyBzero((char*)((int)pAddr+PAGE_SIZE-8), 4);
+   pcb[run_pid].trapframe_p->eip = (int)pAddr;
+   MyMemcpy((char*)trapframeDRAMloc, (char*)pcb[run_pid].trapframe_p, sizeof(*pcb[run_pid].trapframe_p));
+   pcb[run_pid].trapframe_p = trapframeDRAMloc;
+   //trapframeDRAMloc->eip = (int)pAddr;
+   
 } 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

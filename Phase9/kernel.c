@@ -14,7 +14,7 @@ struct i386_gate *IDT_p;
 
 // kernel data are all declared here:
 int run_pid;                       				// currently running PID; if -1, none selected
-pid_q_t ready_pid_q, avail_pid_q;  				// avail PID and those ready to run
+pid_q_t ready_pid_q, avail_pid_q, page_q;		// avail PID and those ready to run
 pcb_t pcb[PROC_NUM];               				// Process Control Blocks
 char proc_stack[PROC_NUM][PROC_STACK_SIZE];  // process runtime stacks
 int current_time;
@@ -49,7 +49,8 @@ void InitKernelData(void) {
    MyBzero((char *)&ready_pid_q, sizeof(pid_q_t)); // Phase 1  
    MyBzero((char *)&avail_pid_q, sizeof(pid_q_t));	// Phase 4
    MyBzero((char *)&video_sem.wait_q, sizeof(pid_q_t));  // Phase 3
-   MyBzero((char *)&page_q, sizeof(pid_q_t));   // Phase 9
+   MyBzero((char *)&page_q, sizeof(pid_q_t));      // Phase 9
+   MyBzero((char *)PAGE_BASE, PAGE_SIZE*PAGE_NUM); // Phase 9
    MyBzero((char *)&term[0], sizeof(term_t));      // Phase 4
    MyBzero((char *)&term[1], sizeof(term_t));      // Phase 4
    term[0].port = 0x2f8;			                  // Phase 4
@@ -62,6 +63,10 @@ void InitKernelData(void) {
 
    for(i=0; i<Q_SIZE; i++) {       						//enqueue all PID numbers
       EnQ(i, &avail_pid_q);
+   }
+   // Phase 9
+   for(i=0; i<PAGE_NUM; i++) {       					//enqueue all page numbers
+      EnQ(i, &page_q);
    }
 }
 

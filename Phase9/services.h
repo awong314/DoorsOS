@@ -27,5 +27,7 @@ void WrapperService(int pid, func_p_t p);
 // Phase 8
 void ExitService(int exit_code);
 void WaitchildService(int *exit_code_p, int *child_pid_p);
+// Phase 9 
+void ExecService(func_p_t p, int arg);
 
 #endif

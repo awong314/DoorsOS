@@ -129,7 +129,8 @@ void ChildHandler(void) {
    char str[] = "   ";
 
    child_pid = sys_waitchild(&exit_code);
-   // Determine which terminal to use (from its own PID)
+   // Determine which terminal to use
+   // *NOTE* Used the parent's pid to determine the terminal to match the Demo 
    temp = pcb[child_pid].ppid;
    which = temp % 2 ? TERM1 : TERM2;
    // Build str from child_pid

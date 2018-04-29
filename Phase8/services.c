@@ -195,12 +195,12 @@ void DspService(int which) {
 
    MyStrShift(term[which].dsp);
 
+   // Str ends & there's a waiter
    if(term[which].dsp[0] == '\0' && (term[which].dsp_wait_q.size != 0)) {
-      // str ends & there's a waiter
-      // release the 1st waiter in the wait queue:
-      //1. dequeue it from the wait queue
-      //2. update its state
-      //3. enqueue it to ready PID queue
+      // Release the 1st waiter in the wait queue:
+      // 1. Dequeue it from the wait queue
+      // 2. Update its state
+      // 3. Enqueue it to ready PID queue
       pid = DeQ(&term[which].dsp_wait_q);
       pcb[pid].state = READY;
       EnQ(pid, &ready_pid_q);
@@ -390,7 +390,7 @@ void ExitService(int exit_code) {
 }
 
 void WaitchildService(int *exit_code_p, int *child_pid_p) {
-   int child_pid = 0;// exit_code;
+   int child_pid = 0, exit_code;
    
    // Search pcb's for zombies
    for(child_pid = 0; child_pid < PROC_NUM; child_pid++) {
@@ -406,10 +406,12 @@ void WaitchildService(int *exit_code_p, int *child_pid_p) {
       run_pid = -1;
       return;
    }
+   
+   exit_code = pcb[child_pid].trapframe_p->ebx;
 
    // Copy to parent's space: Child PID & Exit Code
    *child_pid_p = child_pid;
-   *exit_code_p = pcb[child_pid].trapframe_p->ebx;
+   *exit_code_p = exit_code;
 
    // Reclaim the child's resources
    EnQ(child_pid, &avail_pid_q);              

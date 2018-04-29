@@ -77,7 +77,8 @@ void UserProc(void) {
                sys_write(which, "\n\rUserProc: cannot fork!\n\r", 28);
                break;
             case 0:
-               // Child process created, let it do ChildStuff()
+               // Phase 9 
+               // Child forked, call sys_exec to run ChildStuff in separate DRAM space (outside of MyOS.dli)
                sys_exec(ChildStuff, which);
                break;
             default:

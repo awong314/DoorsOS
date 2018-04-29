@@ -38,7 +38,7 @@ typedef struct {
    //Phase 6
    int ppid;                  // Parent pid         
    //Phase 9
-   int page; 
+   int page;                  // To record page # used by the proc
 } pcb_t;                     
 
 typedef struct {              // generic queue type

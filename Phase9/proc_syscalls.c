@@ -120,7 +120,7 @@ void sys_signal(int signal, func_p_t p) {
 // PHASE 8
 void sys_exit(int exit_code) {
    asm("movl %0, %%eax;
-      movl %1, %%ebx;    // put exit_code to ebx
+      movl %1, %%ebx;         // put exit_code to ebx
       int $128;"         
       :
       :  "g" (SYS_EXIT), "g" (exit_code)
@@ -142,14 +142,14 @@ int sys_waitchild(int *exit_code_p) {
 }
 
 // Phase 9
-void sys_exec(func_p p, int arg) {
+void sys_exec(func_p_t p, int arg) {
 
    asm("movl %0, %%eax;        
-      movl %1, %%ebx;	      // send in arg via ebx 
-      movl %2, %%ecx;         // send in p addr via ecx
+      movl %1, %%ebx;	      // send in p addr via ebx 
+      movl %2, %%ecx;         // send in arg via ecx
       int $128;"
       :
-      : "g" (SYS_EXEC), "g" (arg), "g" ((int)p)
+      : "g" (SYS_EXEC), "g" ((int)p), "g" (arg)
       : "eax", "ebx", "ecx"
    );
 }

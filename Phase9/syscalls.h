@@ -18,5 +18,7 @@ extern int sys_getppid(void);
 // Phase 8
 extern void sys_exit(int exit_code);
 extern int sys_waitchild(int *exit_code_p);
+// Phase 9
+extern void sys_exec(func_p_t p, int arg);
 
 #endif

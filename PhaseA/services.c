@@ -9,6 +9,7 @@
 
 int count=0;
 
+
 // to create process, alloc PID, PCB, and process stack
 // build trapframe, initialize PCB, record PID to ready_pid_q (unless 0)
 void NewProcService(func_p_t proc_p) {    // arg: where process code starts
@@ -215,9 +216,7 @@ void KbService(int which) {
    char ch;
    // Read a character from the 'port' of the terminal
    ch = inportb(term[which].port);
-   // Also write it out via the 'port' of the terminal (to echo back)
-   outportb(term[which].port, ch);
-   
+      
    // Phase 7 
    // If the read character is ctrl-C
    if (ch == (char)3) {
@@ -244,6 +243,9 @@ void KbService(int which) {
    else {
       outportb(term[which].port, '\n');
    }
+
+   // Also write it out via the 'port' of the terminal (to echo back)
+   outportb(term[which].port, ch);
 
    // if there is waiting process in kb_wait_q of the term, release and feed the kb str
    if(term[which].kb_wait_q.size > 0) {
@@ -339,6 +341,7 @@ void WrapperService(int pid, func_p_t p) {
    t = *pcb[pid].trapframe_p;
 
    // Lower the trapframe location info (in PCB) by 8 bytes
+   //#############CHECK THE LEFT SIDE TYPECASTING WITH GDB#############
    (int)pcb[pid].trapframe_p -= 8;
 
    // Copy temporary trapframe to the new lowered location
@@ -349,25 +352,26 @@ void WrapperService(int pid, func_p_t p) {
    vacant = (int*)((int)pcb[pid].trapframe_p + sizeof(trapframe_t));
    *vacant = pcb[pid].trapframe_p->eip;
    vacant++;
-   *(func_p_t*)vacant = p;
+   *vacant = (int)p;
 
    // Change 'eip' in copied trapframe to addr of Wrapper()
    pcb[pid].trapframe_p->eip = (int)Wrapper;
 }
-
+   
 void GetppidService(int *p) {
 	*p = pcb[run_pid].ppid;
 }
 
 // Phase8
 void ExitService(int exit_code) {
-   int ppid, *p; 
+   int i, ppid, *p; 
 
    ppid = pcb[run_pid].ppid;
    p = (int*)pcb[ppid].trapframe_p->ebx;
    
    if(pcb[ppid].state != WAITCHILD) {
       pcb[run_pid].state = ZOMBIE;        // Change child state to zombie to reclaim l8er
+      set_cr3(OS_TT);
       run_pid = -1;                       // Rst run_pid (resources still used)
       if(signal_table[ppid][SIGCHILD]) {  // If parent has SIGCHILD handler registered
          WrapperService(ppid, signal_table[ppid][SIGCHILD]); // Runtime redirection service
@@ -389,11 +393,19 @@ void ExitService(int exit_code) {
    MyBzero((char *)&proc_stack[run_pid], PROC_STACK_SIZE); 
    MyBzero((char *)&signal_table[run_pid][0], sizeof(func_p_t)*SIG_NUM);
 
+   // Phase A
+   // Reclaim pages
+   for(i=0; i<5; i++) {
+      EnQ(pcb[run_pid].page[i], &page_q);
+      MyBzero((char *)PAGE_ADDR(pcb[run_pid].page[i]), PAGE_SIZE);
+   } 
+   set_cr3(OS_TT);
+
    run_pid = -1;
 }
 
 void WaitchildService(int *exit_code_p, int *child_pid_p) {
-   int child_pid = 0, exit_code;
+   int i, child_pid = 0, exit_code;
    
    // Search pcb's for zombies
    for(child_pid = 0; child_pid < PROC_NUM; child_pid++) {
@@ -409,8 +421,14 @@ void WaitchildService(int *exit_code_p, int *child_pid_p) {
       run_pid = -1;
       return;
    }
+
+   // Phase A
+   set_cr3(pcb[child_pid].TT);
    
    exit_code = pcb[child_pid].trapframe_p->ebx;
+   
+   // Phase A   
+   set_cr3(pcb[run_pid].TT);
 
    // Copy to parent's space: Child PID & Exit Code
    *child_pid_p = child_pid;
@@ -422,33 +440,67 @@ void WaitchildService(int *exit_code_p, int *child_pid_p) {
    MyBzero((char *)&proc_stack[child_pid], PROC_STACK_SIZE); 
    MyBzero((char *)&signal_table[child_pid][0], sizeof(func_p_t)*SIG_NUM);
 
+   // Phase A
+   // Reclaim pages
+   for(i=0; i<5; i++) {
+      EnQ(pcb[child_pid].page[i], &page_q);
+      MyBzero((char *)PAGE_ADDR(pcb[child_pid].page[i]), PAGE_SIZE);
+   }
 }
 
 // Phase 9
 void ExecService(func_p_t p, int arg) {
-   int page;
-   func_p_t pAddr;
-   trapframe_t *trapframeDRAMloc; 
-   int *argAddr;
+   // local var for Phase A
+   trapframe_t *tmp_t;
+   int *q, entry, i;
+   int TT = 0, IT = 1, ST = 2, IP = 3, SP = 4;
+
+   // NOTE TT=0, IT = 1, ST = 2, IP = 3, and SP = 4 to be done in the for loop.
+   for(i=0; i<5; i++) {
+      if(page_q.size == 0) {
+         cons_printf("No page's left!!!\n");
+         return;
+      } 
+      pcb[run_pid].page[i] = DeQ(&page_q);
+   }
+
+   // BUILD TT
+   pcb[run_pid].TT = PAGE_ADDR(pcb[run_pid].page[TT]);
+   MyBzero((char *)pcb[run_pid].TT, PAGE_SIZE);
+   MyMemcpy((char *)pcb[run_pid].TT, (char *)OS_TT, sizeof(int[4]));
+   q = (int *)pcb[run_pid].TT;
+   entry = (VM_START & 0xFFC00000) >> 22;
+   q[entry] = PAGE_ADDR(pcb[run_pid].page[IT]) | 0x003;
+   entry = (VM_END & 0xFFC00000) >> 22;
+   q[entry] = PAGE_ADDR(pcb[run_pid].page[ST]) | 0x003;
+
+   // BUILD IT
+   MyBzero((char *)PAGE_ADDR(pcb[run_pid].page[IT]), PAGE_SIZE);
+   q = (int *)PAGE_ADDR(pcb[run_pid].page[IT]); 
+   entry = (VM_START & 0x003FF000) >> 12;
+   q[entry] = PAGE_ADDR(pcb[run_pid].page[IP]) | 0x03;
    
-   if(page_q.size == 0) {
-      cons_printf("No page's left!!!\n");
-      return;
-   } 
+   // BUILD ST
+   MyBzero((char *)PAGE_ADDR(pcb[run_pid].page[ST]), PAGE_SIZE);
+   q = (int *)PAGE_ADDR(pcb[run_pid].page[ST]); 
+   entry = (VM_END & 0x003ff000) >> 12;
+   q[entry] = PAGE_ADDR(pcb[run_pid].page[SP]) | 0x03;
+
+   // MAKE IP
+   MyMemcpy((char *)PAGE_ADDR(pcb[run_pid].page[IP]), (char *)p, PAGE_SIZE);
+
+   // Make SP
+   q = (int *)(PAGE_ADDR(pcb[run_pid].page[SP]) + PAGE_SIZE);
+   q--;
+   *q = arg;
+   q--;
+   *q = 0;
    
-   page = DeQ(&page_q); 
-   pcb[run_pid].page = page;
-   pAddr = (func_p_t)(PAGE_BASE + (page*PAGE_SIZE));
-   argAddr = (int*)((int)pAddr+PAGE_SIZE-4);
-   trapframeDRAMloc = (trapframe_t *)((int)pAddr+PAGE_SIZE-8-sizeof(trapframe_t));
+   tmp_t = pcb[run_pid].trapframe_p;
+   pcb[run_pid].trapframe_p = (trapframe_t *)VM_TF;
    
-   
-   MyMemcpy((char*)pAddr, (char*)p, PAGE_SIZE);
-   *argAddr = arg;
-   MyBzero((char*)((int)pAddr+PAGE_SIZE-8), 4);
-   pcb[run_pid].trapframe_p->eip = (int)pAddr;
-   MyMemcpy((char*)trapframeDRAMloc, (char*)pcb[run_pid].trapframe_p, sizeof(*pcb[run_pid].trapframe_p));
-   pcb[run_pid].trapframe_p = trapframeDRAMloc;
+   tmp_t->eip = VM_START;
+   MyMemcpy((char *)(int)q - sizeof(trapframe_t),(char *)tmp_t, sizeof(trapframe_t));
 } 
 
 

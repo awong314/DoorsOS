@@ -216,7 +216,7 @@ void KbService(int which) {
    char ch;
    // Read a character from the 'port' of the terminal
    ch = inportb(term[which].port);
-      
+        
    // Phase 7 
    // If the read character is ctrl-C
    if (ch == (char)3) {
@@ -235,17 +235,17 @@ void KbService(int which) {
          } 
       } else { return; }
    } 
-   // If what's read is NOT a '\r' (CR) key, append it to kb[] string
-   else if (ch != '\r') {
-      MyStrAppend(term[which].kb, ch);
-      return;
-   } 
-   else {
-      outportb(term[which].port, '\n');
-   }
-
+   
    // Also write it out via the 'port' of the terminal (to echo back)
    outportb(term[which].port, ch);
+
+   // If what's read is NOT a '\r' (CR) key, append it to kb[] string
+   if (ch != '\r') {
+      MyStrAppend(term[which].kb, ch);
+      return;
+   } else {
+      outportb(term[which].port, '\n');
+   }
 
    // if there is waiting process in kb_wait_q of the term, release and feed the kb str
    if(term[which].kb_wait_q.size > 0) {
@@ -475,13 +475,13 @@ void ExecService(func_p_t p, int arg) {
    q[entry] = PAGE_ADDR(pcb[run_pid].page[ST]) | 0x003;
 
    // BUILD IT
-   MyBzero((char *)PAGE_ADDR(pcb[run_pid].page[IT]), PAGE_SIZE);
+   MyBzero((char *)PAGE_ADDR(pcb[run_pid].page[IT]), sizeof(PAGE_SIZE));
    q = (int *)PAGE_ADDR(pcb[run_pid].page[IT]); 
    entry = (VM_START & 0x003FF000) >> 12;
    q[entry] = PAGE_ADDR(pcb[run_pid].page[IP]) | 0x03;
    
    // BUILD ST
-   MyBzero((char *)PAGE_ADDR(pcb[run_pid].page[ST]), PAGE_SIZE);
+   MyBzero((char *)PAGE_ADDR(pcb[run_pid].page[ST]), sizeof(PAGE_SIZE));
    q = (int *)PAGE_ADDR(pcb[run_pid].page[ST]); 
    entry = (VM_END & 0x003ff000) >> 12;
    q[entry] = PAGE_ADDR(pcb[run_pid].page[SP]) | 0x03;

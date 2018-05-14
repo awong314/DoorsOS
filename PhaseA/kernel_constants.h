@@ -5,7 +5,7 @@
 
 #define TIMER 32             // IDT entry #32 has code addr for timer intr (DOS IRQ0)
 
-#define LOOP 1666666         // handly loop limit exec asm("inb $0x80");
+#define LOOP 166666         // handly loop limit exec asm("inb $0x80");
 #define TIME_LIMIT 200       // max timer count, then rotate process
 #define PROC_NUM 20          // max number of processes
 #define Q_SIZE 20            // queuing capacity
@@ -57,6 +57,6 @@
 // Phase A constants
 #define VM_START 0x20000000   // VM starts at addr 500MB
 #define VM_END 0x5fffffff     // VM ends at addr 1.5GB
-#define VM_TF (VM_END+1) - sizeof(trapframe_t) - 2*sizeof(int)   // 2G minus size of trapframe and 2 integers
+#define VM_TF ((VM_END+1)-sizeof(trapframe_t)-2*sizeof(int))   // 2G minus size of trapframe and 2 integers
 
 #endif

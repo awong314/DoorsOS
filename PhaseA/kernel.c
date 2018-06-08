@@ -135,9 +135,8 @@ void Kernel(trapframe_t *trapframe_p) {   // kernel code runs (100 times/second)
    }
 
    ProcScheduler();                       // call ProcScheduler() to select run_pid
-
    // Phase A 
-   if(pcb[run_pid].TT != 0) {            // If TT is set then give this TT to the MMU
+   if(pcb[run_pid].TT != 0) {             // If TT is set then give this TT to the MMU
       set_cr3(pcb[run_pid].TT);
    }
    ProcLoader(pcb[run_pid].trapframe_p);  // call ProcLoader() given the trapframe_p of the run_pid to load/run it

@@ -386,12 +386,8 @@ void ExitService(int exit_code) {
    // Copy to parent's space: Child PID & Exit Code
    pcb[ppid].trapframe_p->ecx = run_pid;
    *p = exit_code;
-   
-   // Reclaim the child's resources
-   EnQ(run_pid, &avail_pid_q);              
-   MyBzero((char *)&pcb[run_pid], sizeof(pcb_t)); 
-   MyBzero((char *)&proc_stack[run_pid], PROC_STACK_SIZE); 
-   MyBzero((char *)&signal_table[run_pid][0], sizeof(func_p_t)*SIG_NUM);
+
+   set_cr3(OS_TT);
 
    // Phase A
    // Reclaim pages
@@ -399,7 +395,12 @@ void ExitService(int exit_code) {
       EnQ(pcb[run_pid].page[i], &page_q);
       MyBzero((char *)PAGE_ADDR(pcb[run_pid].page[i]), PAGE_SIZE);
    } 
-   set_cr3(OS_TT);
+   
+   // Reclaim the child's resources
+   EnQ(run_pid, &avail_pid_q);              
+   MyBzero((char *)&pcb[run_pid], sizeof(pcb_t)); 
+   MyBzero((char *)&proc_stack[run_pid], PROC_STACK_SIZE); 
+   MyBzero((char *)&signal_table[run_pid][0], sizeof(func_p_t)*SIG_NUM);
 
    run_pid = -1;
 }
@@ -428,17 +429,11 @@ void WaitchildService(int *exit_code_p, int *child_pid_p) {
    exit_code = pcb[child_pid].trapframe_p->ebx;
    
    // Phase A   
-   set_cr3(pcb[run_pid].TT);
+   set_cr3(OS_TT);
 
    // Copy to parent's space: Child PID & Exit Code
    *child_pid_p = child_pid;
    *exit_code_p = exit_code;
-
-   // Reclaim the child's resources
-   EnQ(child_pid, &avail_pid_q);              
-   MyBzero((char *)&pcb[child_pid], sizeof(pcb_t)); 
-   MyBzero((char *)&proc_stack[child_pid], PROC_STACK_SIZE); 
-   MyBzero((char *)&signal_table[child_pid][0], sizeof(func_p_t)*SIG_NUM);
 
    // Phase A
    // Reclaim pages
@@ -446,6 +441,12 @@ void WaitchildService(int *exit_code_p, int *child_pid_p) {
       EnQ(pcb[child_pid].page[i], &page_q);
       MyBzero((char *)PAGE_ADDR(pcb[child_pid].page[i]), PAGE_SIZE);
    }
+
+   // Reclaim the child's resources
+   EnQ(child_pid, &avail_pid_q);              
+   MyBzero((char *)&pcb[child_pid], sizeof(pcb_t)); 
+   MyBzero((char *)&proc_stack[child_pid], PROC_STACK_SIZE); 
+   MyBzero((char *)&signal_table[child_pid][0], sizeof(func_p_t)*SIG_NUM);
 }
 
 // Phase 9
